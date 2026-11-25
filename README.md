@@ -1,5 +1,9 @@
 # Sightline
 
+[![CI](https://github.com/Riqqqque/Sightline/actions/workflows/ci.yml/badge.svg)](https://github.com/Riqqqque/Sightline/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/Riqqqque/Sightline)](https://github.com/Riqqqque/Sightline/releases/latest)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+
 A live-match companion for VALORANT that sits on your second monitor. It shows who is in your
 lobby and match (rank, recent form, whether you have met before) and, once the match is over,
 its full scoreboard. It is a separate window, it is read-only, and it stays small.
@@ -17,7 +21,7 @@ its full scoreboard. It is a separate window, it is read-only, and it stays smal
   the match loads, because that is when the game itself reveals it.
 - **Recent form.** The last five ranked results as `W` and `L`, plus KD, headshot rate and ADR
   over the last ten ranked matches.
-- **Seen before.** "With 3x (2-1) · 4d ago": players you have already played with or against,
+- **Seen before.** "With 3x (2-1) Â· 4d ago": players you have already played with or against,
   and how those matches went. You can keep a note on any player.
 - **Smurf flag.** A quiet hint for a new account with unusually strong results. It needs both,
   so a good veteran is never flagged. Click the player to see why.

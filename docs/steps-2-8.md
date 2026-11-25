@@ -207,6 +207,27 @@ match the scoreboard names all ten; a match that was not watched stores only my 
 Checked by pictures drawn in memory. Not yet seen live: the post-game scoreboard, the round
 score in a real match, and the scoreboard staying up through the menus.
 
+## Public release 0.2.0 (2026-11-24, late night)
+
+Rique decided to publish: a public repository, MIT, releases other people can run (decisions 42
+to 47).
+
+- **Updater.** Once a day, and never during a match, the app asks GitHub for the newest release.
+  Settings then offers "Update to x.y.z"; the click downloads the exe, checks it against the
+  SHA-256 published next to it, swaps it in and restarts. Only this repository's release files
+  over HTTPS are accepted, and a download that fails the check changes nothing.
+- **Checked against the real release:** an install pretending to be 0.0.1 was offered 0.2.0,
+  downloaded all 13,513,216 bytes and matched the checksum. The swap is covered by tests in a
+  scratch folder. **Not yet done end to end:** the click in a running app, because that needs a
+  release newer than the one installed.
+- **Nothing personal in the exe.** Builds remap the user profile and the repository folder; the
+  first release build was found to carry the Windows account name in 585 file paths and was
+  rebuilt before upload.
+- **Names after the match** is a setting, off for a new install.
+- **A checkout without the art builds**, with letters and text; the art is fetched by
+  `tools\make-art.ps1 -Download` and only ever ships inside a released exe.
+- 76 tests pass.
+
 ## Simplified or left out
 
 Said plainly, so nothing here is mistaken for done:

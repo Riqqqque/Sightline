@@ -1,0 +1,35 @@
+# Build output
+target/
+
+# Upstream reference clone (read-only study copy, has its own licence)
+reference/
+
+# Local data, config and secrets: never committed
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+config.local.*
+secrets.*
+.env
+.env.*
+*.log
+
+# Measurement output from spikes
+spikes/**/out/
+
+# The copy of the exe the desktop shortcut starts
+dist/
+
+# Game art fetched by tools\make-art.ps1: Riot's artwork, kept local, never committed
+assets/art/
+ui/art.slint
+
+# Working pictures of the app and of the mockups: kept local. The few pictures the README shows
+# live in docs/readme/ and are committed.
+docs/screens/
+docs/mockups/*.png
+# The first round of mockups, which was rejected
+docs/mockups/sightline-designs.html

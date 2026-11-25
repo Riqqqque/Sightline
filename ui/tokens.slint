@@ -1,0 +1,45 @@
+// Design tokens. Colors, type and layout sizes are defined here and nowhere else.
+// The look follows VALORANT's own menus: deep navy, bone white, red, and teal against red.
+
+export global T {
+    // surfaces, darkest first
+    out property <color> ink: #0a1119;
+    out property <color> navy: #0f1923;
+    out property <color> p1: #141e29;
+    out property <color> p2: #1b2734;
+    out property <color> p3: #243242;
+    out property <color> line: #2c3a49;
+
+    // text
+    out property <color> bone: #ece8e1;
+    out property <color> mut: #9ba7ae;
+    out property <color> dim: #63717c;
+
+    // meaning
+    out property <color> red: #ff4655;
+    out property <color> teal: #2bdcb9;
+    out property <color> gold: #f6e58d;
+    out property <color> warn: #ffb648;
+    out property <color> blue: #74c7ff;
+
+    // player bars: the team colour at the left edge, mixed into the bar
+    out property <color> bar-enemy: #693240;
+    out property <color> bar-ally: #205a59;
+    out property <color> bar-free: #263649;
+    out property <color> bar-me: #656852;
+    out property <color> bar-me-rest: #2d363b;
+
+    // Bahnschrift ships with Windows and is cut from the same DIN shapes the game uses.
+    out property <string> font: "Bahnschrift";
+
+    // layout
+    out property <length> header-height: 88px;
+    out property <length> bar-height: 50px;
+    out property <length> bar-dense: 46px;
+    out property <length> bar-gap: 4px;
+    out property <length> focus-width: 344px;
+    out property <length> wide-from: 900px;
+    out property <length> tight-below: 760px;
+    out property <length> tiny-below: 540px;
+    out property <length> max-width: 1280px;
+}

@@ -1,0 +1,23 @@
+[package]
+name = "renderer-test"
+version = "0.0.0"
+edition = "2024"
+publish = false
+authors = ["Rique"]
+description = "Phase 0 renderer check: one dummy lobby screen on Slint's software renderer."
+
+[workspace]
+
+[dependencies]
+# No default features: keeps the FemtoVG/OpenGL renderer, accessibility and the tray out of the binary.
+slint = { version = "=1.19.0", default-features = false, features = ["std", "backend-winit", "renderer-software", "compat-1-2"] }
+
+[build-dependencies]
+slint-build = "=1.19.0"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = "s"
+strip = true
+panic = "abort"

@@ -1,0 +1,43 @@
+[package]
+name = "sightline"
+version = "0.2.0"
+edition = "2024"
+publish = false
+authors = ["Rique"]
+description = "Live-match companion window for VALORANT: who is in your lobby, on a second monitor. Read-only."
+license = "MIT"
+repository = "https://github.com/Riqqqque/Sightline"
+readme = "README.md"
+
+[dependencies]
+# No default features: keeps the OpenGL renderer, accessibility tree and tray icon out of the binary.
+slint = { version = "=1.19.0", default-features = false, features = ["std", "backend-winit", "renderer-software", "compat-1-2"] }
+tokio = { version = "=1.54.1", features = ["rt", "net", "time", "sync"] }
+reqwest = { version = "=0.13.5", default-features = false, features = ["native-tls", "json"] }
+tokio-tungstenite = { version = "=0.30.0", default-features = false, features = ["connect", "handshake", "native-tls"] }
+native-tls = "=0.2.18"
+futures-util = { version = "=0.3.34", default-features = false, features = ["sink", "std"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+base64 = "=0.23.1"
+# SQLite with its own compiled copy: no system DLL needed.
+rusqlite = { version = "=0.43.0", features = ["bundled"] }
+# Reading the user variable that holds the stats key, trimming memory when the game closes,
+# and checking a downloaded update against its published SHA-256.
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_ProcessStatus", "Win32_System_Registry", "Win32_Security", "Win32_Security_Cryptography"] }
+
+[dev-dependencies]
+# Paused clock for the engine test. Test builds only.
+tokio = { version = "=1.54.1", features = ["test-util"] }
+
+[build-dependencies]
+slint-build = "=1.19.0"
+# Puts the icon and the file description into the exe. Build time only; nothing of it ships.
+winresource = { version = "=0.1.34", default-features = false }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = "s"
+strip = true
+panic = "abort"

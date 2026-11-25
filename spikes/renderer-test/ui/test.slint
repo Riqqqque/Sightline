@@ -1,0 +1,419 @@
+// Phase 0 renderer check. Dummy data only.
+
+export struct Player {
+    name: string,
+    tag: string,
+    hidden: bool,
+    level: int,
+    agent: int,
+    rank: int,
+    peak: int,
+    rr: int,
+    kd: string,
+    hs: string,
+    adr: string,
+    wl: [bool],
+    mains: [int],
+    party: int,
+    smurf: int,
+}
+
+global T {
+    out property <color> bg: #0e1116;
+    out property <color> surface: #171b22;
+    out property <color> surface-hi: #1f252e;
+    out property <color> line: #262d38;
+    out property <color> text: #e8ebf0;
+    out property <color> dim: #8b94a3;
+    out property <color> win: #3fbf7f;
+    out property <color> loss: #d6455d;
+    out property <color> warn: #e3b341;
+    out property <color> skeleton: #2a313c;
+    out property <[color]> party: [transparent, #5ab0e8, #e8c15a, #b38be8, #7bd389];
+    out property <[image]> agents: [
+        @image-url("../assets/agent_0.png"), @image-url("../assets/agent_1.png"),
+        @image-url("../assets/agent_2.png"), @image-url("../assets/agent_3.png"),
+        @image-url("../assets/agent_4.png"), @image-url("../assets/agent_5.png"),
+    ];
+    out property <[image]> ranks: [
+        @image-url("../assets/rank_0.png"), @image-url("../assets/rank_1.png"),
+        @image-url("../assets/rank_2.png"), @image-url("../assets/rank_3.png"),
+        @image-url("../assets/rank_4.png"), @image-url("../assets/rank_5.png"),
+        @image-url("../assets/rank_6.png"), @image-url("../assets/rank_7.png"),
+    ];
+    out property <[color]> rank-colors: [#8a8f98, #b9772f, #c9ccd1, #e3b341, #47c8d9, #b48cf2, #3fbf7f, #d6455d];
+}
+
+component Bone inherits Rectangle {
+    in property <float> phase;
+    border-radius: 4px;
+    background: T.skeleton;
+    opacity: 0.45 + 0.55 * phase;
+}
+
+component Stat inherits Rectangle {
+    in property <string> value;
+    in property <string> label;
+    in property <bool> loading;
+    in property <float> phase;
+    width: 58px;
+    VerticalLayout {
+        alignment: center;
+        spacing: 2px;
+        Rectangle {
+            height: 22px;
+            if !root.loading: Text {
+                text: root.value;
+                color: T.text;
+                font-size: 17px;
+                font-weight: 600;
+                horizontal-alignment: center;
+            }
+            if root.loading: Bone {
+                phase: root.phase;
+                width: 40px;
+                height: 16px;
+            }
+        }
+        Text {
+            text: root.label;
+            color: T.dim;
+            font-size: 11px;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+component Card inherits Rectangle {
+    in property <Player> p;
+    in property <bool> loading;
+    in property <float> phase;
+    in property <bool> compact;
+    height: 78px;
+    border-radius: 8px;
+    background: T.surface;
+    border-width: 1px;
+    border-color: T.line;
+
+    // party bracket
+    Rectangle {
+        x: 0;
+        y: 8px;
+        width: 4px;
+        height: parent.height - 16px;
+        border-radius: 2px;
+        background: T.party[root.p.party];
+    }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 12px;
+        spacing: 12px;
+
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: T.agents[root.p.agent];
+                width: 48px;
+                height: 48px;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            spacing: 4px;
+            horizontal-stretch: 1;
+            min-width: 120px;
+            HorizontalLayout {
+                spacing: 6px;
+                alignment: start;
+                Text {
+                    text: root.p.hidden ? "Hidden" : root.p.name;
+                    color: root.p.hidden ? T.dim : T.text;
+                    font-size: 19px;
+                    font-weight: 700;
+                    overflow: elide;
+                }
+                if !root.p.hidden: Text {
+                    text: "#" + root.p.tag;
+                    color: T.dim;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+                if root.p.smurf > 0: Rectangle {
+                    width: badge.preferred-width + 12px;
+                    height: 18px;
+                    border-radius: 9px;
+                    background: T.warn.with-alpha(0.16);
+                    badge := Text {
+                        text: root.p.smurf == 2 ? "Likely smurf" : "Possible smurf";
+                        color: T.warn;
+                        font-size: 11px;
+                        font-weight: 600;
+                    }
+                }
+            }
+            HorizontalLayout {
+                spacing: 6px;
+                alignment: start;
+                Text {
+                    text: root.p.hidden ? "" : "Lv " + root.p.level;
+                    color: T.dim;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+                for a in root.p.mains: Image {
+                    source: T.agents[a];
+                    width: 18px;
+                    height: 18px;
+                }
+                for w in root.p.wl: VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 4px;
+                        background: root.loading ? T.skeleton : (w ? T.win : T.loss);
+                    }
+                }
+            }
+        }
+
+        // rank block: fixed width so nothing shifts when ranks arrive
+        Rectangle {
+            width: 118px;
+            if !root.loading: HorizontalLayout {
+                spacing: 8px;
+                VerticalLayout {
+                    alignment: center;
+                    Image {
+                        source: T.ranks[root.p.rank];
+                        width: 40px;
+                        height: 40px;
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: root.p.rr + " RR";
+                        color: T.rank-colors[root.p.rank];
+                        font-size: 16px;
+                        font-weight: 600;
+                    }
+                    HorizontalLayout {
+                        spacing: 4px;
+                        alignment: start;
+                        Text {
+                            text: "peak";
+                            color: T.dim;
+                            font-size: 11px;
+                            vertical-alignment: center;
+                        }
+                        Image {
+                            source: T.ranks[root.p.peak];
+                            width: 16px;
+                            height: 16px;
+                        }
+                    }
+                }
+            }
+            if root.loading: HorizontalLayout {
+                spacing: 8px;
+                VerticalLayout {
+                    alignment: center;
+                    Bone {
+                        phase: root.phase;
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 20px;
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 6px;
+                    Bone {
+                        phase: root.phase;
+                        width: 56px;
+                        height: 14px;
+                    }
+                    Bone {
+                        phase: root.phase;
+                        width: 40px;
+                        height: 10px;
+                    }
+                }
+            }
+        }
+
+        if !root.compact: HorizontalLayout {
+            spacing: 2px;
+            Stat {
+                value: root.p.kd;
+                label: "KD";
+                loading: root.loading;
+                phase: root.phase;
+            }
+            Stat {
+                value: root.p.hs;
+                label: "HS%";
+                loading: root.loading;
+                phase: root.phase;
+            }
+            Stat {
+                value: root.p.adr;
+                label: "ADR";
+                loading: root.loading;
+                phase: root.phase;
+            }
+        }
+    }
+}
+
+component Team inherits VerticalLayout {
+    in property <[Player]> players;
+    in property <string> title;
+    in property <bool> loading;
+    in property <float> phase;
+    in property <bool> compact;
+    spacing: 8px;
+    alignment: start;
+    Text {
+        text: root.title;
+        color: T.dim;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    for p in root.players: Card {
+        p: p;
+        loading: root.loading;
+        phase: root.phase;
+        compact: root.compact;
+    }
+}
+
+export component TestWindow inherits Window {
+    in property <[Player]> allies;
+    in property <[Player]> enemies;
+    // 0 = static, 1 = skeleton shimmer on every card, 2 = whole-window repaint every frame
+    in property <int> mode: 0;
+    // Called from a binding that only the renderer reads, so each call is one drawn frame.
+    pure callback probe(int) -> color;
+
+    title: "Sightline renderer test";
+    background: root.mode == 2 ? T.bg.mix(#141a22, root.phase) : T.bg;
+    preferred-width: 1280px;
+    preferred-height: 720px;
+    default-font-family: "Segoe UI";
+
+    property <duration> tick: root.mode != 0 ? animation-tick() : 0ms;
+    property <float> phase: root.mode == 0 ? 1.0 : abs(sin(360deg * (root.tick / 1200ms)));
+    property <bool> narrow: root.width < 760px;
+    property <bool> compact: root.width < 1180px && !root.narrow ? true : (root.narrow && root.width < 560px);
+
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: 1px;
+        height: 1px;
+        background: root.probe(root.tick / 1ms);
+    }
+
+    min-width: 420px;
+    min-height: 480px;
+
+    // Explicit geometry: the window's size limits must not depend on the content,
+    // otherwise the width-driven density switch feeds back into the layout.
+    VerticalLayout {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        padding: 16px;
+        spacing: 12px;
+
+        // map / rank-gap header
+        Rectangle {
+            height: 56px;
+            border-radius: 8px;
+            background: T.surface-hi;
+            HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
+                spacing: 16px;
+                Text {
+                    text: "ASCENT";
+                    color: T.text;
+                    font-size: 20px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: "Competitive";
+                    color: T.dim;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+                VerticalLayout {
+                    alignment: center;
+                    horizontal-stretch: 1;
+                    Rectangle {
+                        height: 8px;
+                        border-radius: 4px;
+                        background: T.loss.with-alpha(0.5);
+                        Rectangle {
+                            x: 0;
+                            width: parent.width * 0.56;
+                            height: parent.height;
+                            border-radius: 4px;
+                            background: T.win;
+                        }
+                    }
+                }
+                Text {
+                    text: "est. 56%";
+                    color: T.dim;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        if !root.narrow: HorizontalLayout {
+            spacing: 16px;
+            Team {
+                title: "MY TEAM";
+                players: root.allies;
+                loading: root.mode != 0;
+                phase: root.phase;
+                compact: root.compact;
+            }
+            Team {
+                title: "ENEMY TEAM";
+                players: root.enemies;
+                loading: root.mode != 0;
+                phase: root.phase;
+                compact: root.compact;
+            }
+        }
+        if root.narrow: VerticalLayout {
+            spacing: 12px;
+            alignment: start;
+            Team {
+                title: "MY TEAM";
+                players: root.allies;
+                loading: root.mode != 0;
+                phase: root.phase;
+                compact: root.compact;
+            }
+            Team {
+                title: "ENEMY TEAM";
+                players: root.enemies;
+                loading: root.mode != 0;
+                phase: root.phase;
+                compact: root.compact;
+            }
+        }
+        Rectangle { }
+    }
+}

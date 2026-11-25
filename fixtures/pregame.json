@@ -1,0 +1,21 @@
+{
+  "ID": "00000000-0000-4000-8000-0000000000a1",
+  "MapID": "/Game/Maps/Ascent/Ascent",
+  "QueueID": "competitive",
+  "AllyTeam": {
+    "TeamID": "Blue",
+    "Players": [
+      { "Subject": "00000000-0000-4000-8000-000000000001", "CharacterID": "8e253930-4c05-31dd-1b6c-968525494517", "CharacterSelectionState": "locked",
+        "PlayerIdentity": { "AccountLevel": 212, "Incognito": true, "HideAccountLevel": false } },
+      { "Subject": "00000000-0000-4000-8000-000000000002", "CharacterID": "add6443a-41bd-e414-f6ad-e58d267f4e95", "CharacterSelectionState": "locked",
+        "PlayerIdentity": { "AccountLevel": 88, "Incognito": true, "HideAccountLevel": false } },
+      { "Subject": "00000000-0000-4000-8000-000000000003", "CharacterID": "320b2a48-4d9b-a075-30f1-1f93a9b638fa", "CharacterSelectionState": "selected",
+        "PlayerIdentity": { "AccountLevel": 301, "Incognito": true, "HideAccountLevel": true } },
+      { "Subject": "00000000-0000-4000-8000-000000000004", "CharacterID": "", "CharacterSelectionState": "",
+        "PlayerIdentity": { "AccountLevel": 24, "Incognito": false, "HideAccountLevel": false } },
+      { "Subject": "00000000-0000-4000-8000-000000000005", "CharacterID": "569fdd95-4d10-43ab-ca70-79becc718b46", "CharacterSelectionState": "locked",
+        "PlayerIdentity": { "AccountLevel": 31, "Incognito": false, "HideAccountLevel": true } }
+    ]
+  },
+  "EnemyTeam": null
+}

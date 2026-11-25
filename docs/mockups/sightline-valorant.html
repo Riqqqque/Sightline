@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sightline · VALORANT-style mockups</title>
+<style>
+:root{
+  --navy:#0f1923; --ink:#0a1119; --p1:#141e29; --p2:#1b2734; --p3:#243242; --line:#2c3a49;
+  --bone:#ece8e1; --mut:#9ba7ae; --dim:#63717c;
+  --red:#ff4655; --teal:#2bdcb9; --gold:#f6e58d; --warn:#ffb648; --blue:#74c7ff;
+  --din:"Bahnschrift","DIN Next","Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#05080c;color:var(--bone);font-family:var(--din);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:18px 24px 40px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block}
+.c{font-stretch:75%;font-weight:700;text-transform:uppercase;letter-spacing:.015em;line-height:1}
+.lab{font-size:11px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--mut)}
+.red{color:var(--red)} .ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* page controls, outside the app window */
+.bar{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;max-width:1280px;margin:0 auto 14px}
+.bar h1{font-size:15px;font-weight:600;margin:0 auto 0 0;letter-spacing:.04em}
+.bar h1 span{color:var(--dim);font-weight:400}
+.seg{display:flex;background:#0b1118;border:1px solid var(--line);padding:3px}
+.seg button{padding:8px 16px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.seg button.on{background:var(--red);color:#fff}
+.stage{max-width:1280px;margin:0 auto}
+.fit{transform-origin:0 0}
+.win{width:1280px;background:var(--navy);border:1px solid #303a46;overflow:hidden}
+.chrome{height:32px;display:flex;align-items:center;gap:9px;padding-left:11px;background:#0a0f15;font-size:12px;color:var(--mut);font-family:"Segoe UI Variable Text","Segoe UI",sans-serif}
+.chrome .ico{display:grid;grid-template-columns:5px 5px;gap:2px}
+.chrome .ico i{display:block;height:2px}
+.chrome .sp{flex:1}
+.chrome .wb{width:46px;height:32px;display:flex;align-items:center;justify-content:center;color:#76828d;font-size:11px}
+.about{max-width:1280px;margin:16px auto 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.about div{background:#0b1118;border:1px solid var(--line);padding:14px 16px}
+.about h3{font-size:11px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--red);margin:0 0 8px}
+.about p,.about li{font-size:14px;line-height:1.5;color:var(--mut);margin:0}
+.about ul{margin:0;padding-left:16px}
+.about b{color:var(--bone);font-weight:600}
+@media (max-width:900px){.about{grid-template-columns:1fr}}
+
+/* shared app pieces */
+.hdr{position:relative;height:96px;overflow:hidden;border-bottom:1px solid var(--line)}
+.hdr .bg{position:absolute;inset:0;background-size:cover;background-position:center 38%}
+.hdr .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0f1923 0%,rgba(15,25,35,.86) 34%,rgba(15,25,35,.38) 100%)}
+.hdr .in{position:relative;height:100%;display:flex;align-items:center;gap:26px;padding:0 30px}
+.hdr .map{font-size:58px;letter-spacing:.03em;margin-top:5px}
+.hdr .sp{flex:1}
+.hdr .fact{border-left:2px solid var(--red);padding-left:12px}
+.hdr .fact b{display:block;font-size:26px;margin-top:4px}
+.live{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.17em;color:var(--teal)}
+.live i{width:8px;height:8px;background:var(--teal)}
+.vbtn{position:relative;height:34px;padding:0 18px;font-size:12px;font-weight:600;letter-spacing:.17em;border:1px solid rgba(236,232,225,.45);color:var(--bone);background:rgba(15,25,35,.5)}
+.sq{display:inline-flex;gap:5px;vertical-align:middle;font-stretch:75%;font-weight:700;font-size:19px;line-height:1}
+.sq i{font-style:normal;color:var(--dim)}
+.sq .w{color:var(--teal)} .sq .l{color:var(--red)}
+.tg{display:inline-flex;align-items:center;height:18px;padding:0 7px;font-size:11px;font-weight:700;letter-spacing:.1em;color:#0f1923;white-space:nowrap}
+.tg.you{background:var(--gold)} .tg.sm{background:var(--warn)} .tg.nt{background:var(--blue)} .tg.duo{background:var(--bone)}
+.bone{display:inline-block;height:10px;background:var(--p3)}
+.foot{display:flex;gap:18px;align-items:center;padding:9px 30px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);font-family:"Segoe UI Variable Text","Segoe UI",sans-serif}
+.foot .sp{flex:1}
+.gap{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px}
+.gap .n{font-size:44px}
+.gap .side{display:flex;align-items:baseline;gap:10px}
+.gap .track{position:relative;height:10px;background:var(--red)}
+.gap .track i{display:block;height:10px;background:var(--teal)}
+.gap .track b{position:absolute;left:50%;top:-5px;width:2px;height:20px;background:var(--bone)}
+.sec{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.2em}
+.sec i{width:10px;height:10px}
+.sec em{font-style:normal;color:var(--dim);letter-spacing:.1em;margin-left:auto}
+
+/* ───────── A · Match load ───────── */
+.A .band{padding:14px 30px 10px}
+.A .rowc{display:grid;gap:10px;padding:0 30px}
+.A .ac{position:relative;height:292px;overflow:hidden;background:linear-gradient(180deg,var(--ac) 0%,#141e29 72%);clip-path:polygon(0 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%)}
+.A .ac .bar{position:absolute;left:0;right:0;top:0;height:4px;z-index:3}
+.A .ac .txt{position:absolute;inset:-10% -30%;background-size:cover;background-position:center;opacity:.13}
+.A .ac .port{position:absolute;left:50%;top:-104px;height:640px;transform:translateX(-50%)}
+.A .ac .shade{position:absolute;left:0;right:0;bottom:0;height:176px;background:linear-gradient(180deg,rgba(15,25,35,0) 0%,rgba(15,25,35,.93) 36%,#0f1923 100%)}
+.A .ac .tags{position:absolute;left:10px;top:14px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;z-index:2}
+.A .ac .plate{position:absolute;left:0;right:0;bottom:0;padding:0 14px 14px}
+.A .ac .who{display:flex;align-items:center;gap:9px;min-width:0}
+.A .ac .rk{width:40px;height:40px;flex:none}
+.A .ac .nm{font-size:24px}
+.A .ac .sub{font-size:13px;color:var(--mut);margin-top:3px}
+.A .ac .st{display:grid;grid-template-columns:repeat(3,1fr);margin-top:10px;border-top:1px solid rgba(236,232,225,.16);padding-top:9px}
+.A .ac .st b{display:block;font-size:26px}
+.A .ac .st span{font-size:11px;font-weight:600;letter-spacing:.17em;color:var(--dim)}
+.A .ac .st .hot b{color:var(--warn)}
+.A .ac .fm{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:13px;color:var(--blue);min-height:16px}
+.A .ac.me{outline:2px solid var(--gold);outline-offset:-2px}
+.A .ac.sm{outline:2px solid var(--warn);outline-offset:-2px}
+.A .ac.hid{background:#111a24}
+.A .ac.hid .port{filter:brightness(0);opacity:.6}
+.A .ac.hid .hatch{position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(236,232,225,.045) 0 2px,transparent 2px 11px)}
+.A .mid{padding:12px 30px 12px}
+.A.dm .ac{height:300px}
+.A.dm .ac .port{height:560px;top:-84px}
+.A.dm .ac .nm{font-size:19px}
+.A.dm .ac .rk{width:34px;height:34px}
+.A.dm .ac .st b{font-size:22px}
+
+/* ───────── B · Scoreboard ───────── */
+.B .body{display:grid;grid-template-columns:minmax(0,1fr) 344px}
+.B .tbl{padding:16px 22px 18px 30px}
+.B .cols,.B .r{display:grid;grid-template-columns:52px 40px minmax(0,1fr) 78px 68px 62px 58px 152px;gap:12px;align-items:center}
+.B .cols{height:30px;font-size:11px;font-weight:600;letter-spacing:.17em;color:var(--dim);padding-right:14px}
+.B .cols .rt{text-align:right}
+.B .r{position:relative;height:58px;margin-bottom:4px;padding-right:14px;background:linear-gradient(90deg,var(--tint) 0%,rgba(27,39,52,.9) 46%,#1b2734 100%)}
+.B .r::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--edge)}
+.B .r .face{width:52px;height:58px;object-fit:cover;background:rgba(0,0,0,.25)}
+.B .r .rk{width:38px;height:38px}
+.B .r .nm{font-size:23px;flex:0 1 auto}
+.B .r .line .tg{flex:none}
+.B .r .sub{font-size:13px;color:var(--mut);margin-top:3px}
+.B .r .line{display:flex;align-items:center;gap:8px;min-width:0}
+.B .r .v{font-size:26px;text-align:right}
+.B .r .v.hot{color:var(--warn)}
+.B .r .seen{font-size:13px;color:var(--blue);text-align:right;line-height:1.3}
+.B .r.me{background:linear-gradient(90deg,rgba(246,229,141,.34) 0%,rgba(246,229,141,.10) 46%,rgba(246,229,141,.06) 100%)}
+.B .r.me::before{background:var(--gold)}
+.B .r.sel{outline:1px solid var(--bone);outline-offset:-1px}
+.B .r.hid{background:repeating-linear-gradient(135deg,rgba(236,232,225,.04) 0 2px,transparent 2px 11px),#131c26}
+.B .r.hid .face{filter:brightness(0);opacity:.55}
+.B .r.hid .nm{color:var(--dim)}
+.B.dm .r{height:46px} .B.dm .r .face{height:46px} .B.dm .r .nm{font-size:20px} .B.dm .r .v{font-size:22px} .B.dm .r .rk{width:32px;height:32px}
+.B .focus{position:relative;border-left:1px solid var(--line);background:linear-gradient(180deg,var(--ac) 0%,#141e29 58%);overflow:hidden}
+.B .focus .txt{position:absolute;left:-40%;right:-40%;top:-6%;height:70%;background-size:cover;background-position:center;opacity:.14}
+.B .focus .port{position:absolute;left:50%;top:-96px;height:820px;transform:translateX(-50%)}
+.B .focus .shade{position:absolute;left:0;right:0;top:150px;bottom:0;background:linear-gradient(180deg,rgba(15,25,35,0) 0%,rgba(15,25,35,.95) 34%,#0f1923 60%)}
+.B .focus .in{position:absolute;left:0;right:0;bottom:0;padding:0 24px 22px}
+.B .focus .nm{font-size:33px}
+.B .focus .rkrow{display:flex;align-items:center;gap:12px;margin-top:10px}
+.B .focus .rkrow img{width:52px;height:52px}
+.B .focus .rkrow b{display:block;font-size:26px}
+.B .focus .rkrow span{font-size:13px;color:var(--mut)}
+.B .focus h4{font-size:11px;font-weight:600;letter-spacing:.17em;color:var(--red);margin:18px 0 8px}
+.B .focus .sig{font-size:15px;line-height:1.55;color:var(--bone)}
+.B .focus .sig i{font-style:normal;color:var(--warn);margin:0 7px}
+.B .focus .mn{display:grid;grid-template-columns:58px 1fr 76px;gap:10px;align-items:center;font-size:14px;color:var(--mut);margin-bottom:7px}
+.B .focus .mn u{display:block;height:6px;background:var(--p3)}
+.B .focus .mn u b{display:block;height:6px;background:var(--teal)}
+.B .focus .mn span:last-child{text-align:right}
+.B .focus .field{height:36px;border-bottom:1px solid rgba(236,232,225,.45);display:flex;align-items:center;font-size:14px;color:var(--dim)}
+
+/* ───────── C · Intel ───────── */
+.C{position:relative}
+.C .wash{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.22}
+.C .wash::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,25,35,.55),#0f1923 86%)}
+.C .top{position:relative;display:flex;align-items:center;gap:26px;padding:20px 30px 6px}
+.C .top .map{font-size:58px;letter-spacing:.03em;margin-top:5px}
+.C .top .sp{flex:1}
+.C .cols3{position:relative;display:grid;grid-template-columns:340px minmax(0,1fr) 340px;gap:22px;padding:14px 30px 8px}
+.C .li{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;height:72px;margin-top:6px;padding-right:14px;background:rgba(20,30,41,.9)}
+.C .li.a{border-left:4px solid var(--teal)} .C .li.e{border-left:4px solid var(--red)} .C .li.f{border-left:4px solid var(--line)}
+.C .li .face{width:56px;height:72px;object-fit:cover;background:var(--ac)}
+.C .li .nm{font-size:22px}
+.C .li .sub{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);margin-top:5px}
+.C .li .sub img{width:22px;height:22px}
+.C .li .kd{text-align:right}
+.C .li .kd b{display:block;font-size:28px}
+.C .li .kd span{font-size:11px;font-weight:600;letter-spacing:.17em;color:var(--dim)}
+.C .li .kd.hot b{color:var(--warn)}
+.C .li.me{background:rgba(246,229,141,.14);border-left-color:var(--gold)}
+.C .li.pick{outline:1px solid var(--bone);outline-offset:-1px}
+.C .li.hid{background:repeating-linear-gradient(135deg,rgba(236,232,225,.045) 0 2px,transparent 2px 11px),rgba(17,26,36,.9)}
+.C .li.hid .face{filter:brightness(0);opacity:.55;background:#1b2734}
+.C .li.hid .nm{color:var(--dim)}
+.C .li .tags{display:flex;gap:5px;margin-left:2px}
+.C .tgt{position:relative;height:462px;overflow:hidden;background:linear-gradient(180deg,var(--ac) 0%,rgba(20,30,41,.92) 64%);clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,22px 100%,0 calc(100% - 22px))}
+.C .tgt .txt{position:absolute;inset:-4% -22%;background-size:cover;background-position:center;opacity:.16}
+.C .tgt .port{position:absolute;left:50%;top:-128px;height:900px;transform:translateX(-50%)}
+.C .tgt .shade{position:absolute;left:0;right:0;bottom:0;height:270px;background:linear-gradient(180deg,rgba(15,25,35,0) 0%,rgba(15,25,35,.94) 40%,#0f1923 100%)}
+.C .tgt .flag{position:absolute;left:18px;top:16px;display:flex;gap:6px}
+.C .tgt .in{position:absolute;left:0;right:0;bottom:0;padding:0 24px 20px}
+.C .tgt .nm{font-size:46px}
+.C .tgt .row2{display:flex;align-items:center;gap:12px;margin-top:8px;font-size:15px;color:var(--mut)}
+.C .tgt .row2 img{width:44px;height:44px}
+.C .tgt .big{display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;border-top:1px solid rgba(236,232,225,.2);padding-top:12px}
+.C .tgt .big b{display:block;font-size:40px;color:var(--warn)}
+.C .tgt .big span{font-size:11px;font-weight:600;letter-spacing:.17em;color:var(--dim)}
+.C .tgt .why{margin-top:12px;font-size:15px;color:var(--bone)}
+.C .tgt .why i{font-style:normal;color:var(--red);margin:0 8px}
+.C .est{margin-bottom:12px}
+.C .strip{position:relative;display:flex;gap:30px;align-items:center;margin:8px 30px 18px;padding:13px 20px;background:rgba(20,30,41,.9);border-left:4px solid var(--red);font-size:15px;color:var(--mut)}
+.C .strip b{color:var(--bone);font-size:22px;margin-right:6px}
+.C .strip .sp{flex:1}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>SIGHTLINE <span>· round two · modelled on VALORANT's own screens · made-up players</span></h1>
+  <div class="seg" id="designs">
+    <button data-d="1">1 · Match load</button>
+    <button data-d="2">2 · Scoreboard</button>
+    <button data-d="3">3 · Intel</button>
+  </div>
+  <div class="seg" id="modes">
+    <button data-m="5v5">Ranked</button>
+    <button data-m="dm">Deathmatch</button>
+  </div>
+</div>
+
+<div class="stage"><div class="fit" id="fit">
+  <div class="win">
+    <div class="chrome">
+      <span class="ico"><i style="background:#2bdcb9"></i><i style="background:#ff4655"></i><i style="background:#2bdcb9"></i><i style="background:#ff4655"></i><i style="background:#2bdcb9"></i><i style="background:#ff4655"></i></span>
+      Sightline<span class="sp"></span>
+      <span class="wb">&#x2012;</span><span class="wb">&#x25A1;</span><span class="wb">&#x2715;</span>
+    </div>
+    <div id="app"></div>
+  </div>
+</div></div>
+
+<div class="about" id="about"></div>
+
+<script>
+const MEDIA='https://media.valorant-api.com';
+const TIERSET='03621f52-342b-cf4e-4f86-9350a49c6d04';
+const AG={
+  Omen:['8e253930-4c05-31dd-1b6c-968525494517','433178'],Jett:['add6443a-41bd-e414-f6ad-e58d267f4e95','25607a'],
+  Raze:['f94c3b30-42be-e959-889c-5aa313dba261','742e1e'],Sage:['569fdd95-4d10-43ab-ca70-79becc718b46','1f5148'],
+  Sova:['320b2a48-4d9b-a075-30f1-1f93a9b638fa','355285'],Fade:['dade69b4-4f5a-8528-247b-219e5a1facd6','1d2846'],
+  Neon:['bb2a4828-46eb-8cd1-e765-15848195d751','413476'],Cypher:['117ed9e3-49f3-6512-3ccf-0cada7e3823b','2f5078'],
+  Chamber:['22697a3d-45bf-8dd7-4fec-84a9e28c69d7','20435b'],Clove:['1dbf2edd-4729-0984-3115-daa5eed44993','4b1d80'],
+  Viper:['707eab51-4836-f488-046a-cda6bf494859','1a5f46'],Breach:['5f8d3a7f-467b-97f3-062c-13acf203c006','81331a'],
+  Reyna:['a3bfb853-43b2-7238-a4f1-ad90e9e46bcc','662d62']
+};
+const MAPS={Ascent:'7eaecc1b-4337-bbf6-6ab9-04b8f06b3319',Lotus:'2fe4ed3a-450a-948b-6d6b-e89a78e680a9'};
+const art=(agent,kind)=>`${MEDIA}/agents/${AG[agent][0]}/${kind}.png`;
+const tint=agent=>'#'+AG[agent][1];
+const rankIcon=t=>`${MEDIA}/competitivetiers/${TIERSET}/${t}/largeicon.png`;
+const splash=map=>`${MEDIA}/maps/${MAPS[map]}/splash.png`;
+const GROUPS=['Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal'];
+const SHORT=['Iron','Bronze','Silver','Gold','Plat','Dia','Asc','Imm'];
+const tier=(n,short)=>n>=27?'Radiant':n<3?'Unranked':(short?SHORT:GROUPS)[Math.floor((n-3)/3)]+' '+((n-3)%3+1);
+const P=(name,agent,role,lv,t,rr,peak,kd,hs,adr,form,x)=>Object.assign({name,agent,role,lv,t,rr,peak,kd,hs,adr,form},x||{});
+const H=(agent,role)=>({hidden:true,agent,role});
+
+const ALLIES=[
+  P('Rique','Omen','Controller',212,22,61,24,1.20,25,151,'wlwwl',{me:true,duo:true}),
+  P('nightowl','Jett','Duelist',88,21,34,22,0.96,19,131,'wllww',{duo:true,seen:'With you 3 times · 2 wins'}),
+  P('kz','Raze','Duelist',24,20,80,21,0.90,17,128,'wwllw'),
+  P('abc','Sage','Sentinel',null,18,55,20,1.10,22,140,'wwllw'),
+  H('Sova','Initiator')
+];
+const ENEMIES=[
+  P('a very long name','Reyna','Duelist',19,19,12,19,2.06,38,204,'lwwww',{smurf:['Level 19','22 ranked matches ever','Won 8 of last 10']}),
+  P('one tap only','Omen','Controller',67,22,80,22,1.44,24,171,'llwll',{duo:true,seen:'Against you twice · 1 win'}),
+  P('wholesome jett','Jett','Duelist',140,21,12,23,1.28,29,166,'wwwlw',{duo:true,note:'plays operator mid, pushes early',seen:'With you once · won'}),
+  P('quiet','Cypher','Sentinel',203,20,40,20,0.78,15,119,'wllwl',{seen:'Against you once · lost'}),
+  H('Viper','Controller')
+];
+const FREE=[
+  ALLIES[0],
+  P('tenfold','Neon','Duelist',124,24,32,24,1.44,23,176,'wwlww'),
+  P('mossback','Fade','Initiator',310,23,60,25,1.27,30,158,'lllwl'),
+  ENEMIES[1],ENEMIES[2],ENEMIES[0],
+  P('hello there','Chamber','Sentinel',32,17,79,17,1.14,28,149,'lwwll'),
+  P('still loading','Clove','Controller',256,15,43,21,null,null,null,null),
+  P('paperweight','Cypher','Sentinel',100,10,77,11,0.83,12,121,'wllww'),
+  H('Viper','Controller'),H('Breach','Initiator'),H('Sova','Initiator')
+];
+
+const sq=f=>f?`<span class="sq">${[...f].map(c=>`<i class="${c}">${c==='w'?'W':c==='l'?'L':'D'}</i>`).join('')}</span>`:`<span class="bone" style="width:70px"></span>`;
+const kd=p=>p.kd==null?'–':p.kd.toFixed(2);
+const hot=(v,at)=>v!=null&&v>=at?' hot':'';
+const tags=(p,dm)=>`${p.me?'<span class="tg you">YOU</span>':''}${p.smurf?'<span class="tg sm">SMURF?</span>':''}${p.duo&&!dm?'<span class="tg duo">DUO</span>':''}${p.note?'<span class="tg nt">NOTE</span>':''}`;
+const avg=list=>{const r=list.filter(p=>!p.hidden).map(p=>p.t*100+p.rr);return Math.floor(r.reduce((a,b)=>a+b,0)/r.length/100)};
+const strength=p=>p.hidden?-1:(p.kd||0.9)*55+p.t*2+(p.hs||18)*.6;
+const state={d:1,m:'5v5'};
+
+function header(map,mode,facts){
+  return `<div class="hdr"><div class="bg" style="background-image:url(${splash(map)})"></div><div class="in">
+    <div><div class="lab"><span class="red">//</span> ${mode}</div><div class="c map">${map}</div></div>
+    ${facts.map(f=>`<div class="fact"><span class="lab">${f[0]}</span><b class="c">${f[1]}</b></div>`).join('')}
+    <span class="sp"></span><span class="live"><i></i>IN GAME</span><button class="vbtn">SETTINGS</button></div></div>`;
+}
+function gapBar(compact){
+  return `<div class="gap"><div class="side"><span class="c n" style="color:var(--teal)">52</span>${compact?'<span class="lab">Win estimate</span>':`<span class="lab">My team · ${tier(avg(ALLIES))} avg</span>`}</div>
+    <div class="track"><i style="width:52%"></i><b></b></div>
+    <div class="side">${compact?'':`<span class="lab">${tier(avg(ENEMIES))} avg · Enemy</span>`}<span class="c n" style="color:var(--red)">48</span></div></div>`;
+}
+const foot=dm=>`<div class="foot"><span>event socket connected · presence INGAME · core-game ${dm?'12 players, 3 hidden':'5 + 5 players, 2 hidden'}</span><span class="sp"></span><span>Session 3W 1L · +44 RR</span><span>Stats ready · 18/30</span></div>`;
+
+/* ───────── A · Match load ───────── */
+function loadCard(p,edge,dm){
+  if(p.hidden) return `<div class="ac hid"><i class="bar" style="background:${edge}"></i><img class="port" src="${art(p.agent,'fullportrait')}" alt=""><div class="hatch"></div><div class="shade"></div>
+    <div class="plate"><div class="c nm" style="color:var(--mut)">Hidden</div><div class="sub">${p.agent} · name hidden</div></div></div>`;
+  return `<div class="ac${p.me?' me':''}${p.smurf?' sm':''}" style="--ac:${tint(p.agent)}"><i class="bar" style="background:${p.me?'var(--gold)':edge}"></i>
+    <div class="txt" style="background-image:url(${art(p.agent,'background')})"></div><img class="port" src="${art(p.agent,'fullportrait')}" alt=""><div class="shade"></div>
+    <div class="tags">${tags(p,dm)}</div>
+    <div class="plate">
+      <div class="who"><img class="rk" src="${rankIcon(p.t)}" alt=""><div style="min-width:0"><div class="c nm ell">${p.name}</div><div class="sub ell">${tier(p.t)} · ${p.rr} RR</div></div></div>
+      <div class="st">${p.kd==null?`<div style="grid-column:1/4"><span class="bone" style="width:70%;height:22px"></span><br><span>LOADING</span></div>`
+        :`<div class="${hot(p.kd,1.8)}"><b class="c num">${kd(p)}</b><span>KD</span></div><div class="${hot(p.hs,35)}"><b class="c num">${p.hs}%</b><span>HS</span></div><div class="${hot(p.adr,195)}"><b class="c num">${p.adr}</b><span>ADR</span></div>`}</div>
+      <div class="fm">${sq(p.form)}<span class="ell">${p.seen||''}</span></div>
+    </div></div>`;
+}
+function matchLoad(mode){
+  if(mode==='dm'){
+    const list=[FREE[0],...FREE.slice(1).sort((a,b)=>strength(b)-strength(a))];
+    return `<div class="A dm">${header('Lotus','Deathmatch · free for all',[['Players','12'],['Hidden','3'],['Your rank here','4th']])}
+      <div class="band"><div class="sec"><i style="background:var(--bone)"></i>STRONGEST FIRST<em>YOU ARE ALWAYS FIRST</em></div></div>
+      <div class="rowc" style="grid-template-columns:repeat(6,minmax(0,1fr))">${list.slice(0,6).map(p=>loadCard(p,'var(--line)',true)).join('')}</div>
+      <div style="height:10px"></div>
+      <div class="rowc" style="grid-template-columns:repeat(6,minmax(0,1fr));padding-bottom:18px">${list.slice(6).map(p=>loadCard(p,'var(--line)',true)).join('')}</div>
+      ${foot(true)}</div>`;
+  }
+  const en=[...ENEMIES].sort((a,b)=>strength(b)-strength(a));
+  return `<div class="A">${header('Ascent','Competitive',[['You on this map','70%'],['Best on','Omen']])}
+    <div class="band"><div class="sec"><i style="background:var(--red)"></i>ENEMY TEAM<em>STRONGEST FIRST</em></div></div>
+    <div class="rowc" style="grid-template-columns:repeat(5,minmax(0,1fr))">${en.map(p=>loadCard(p,'var(--red)')).join('')}</div>
+    <div class="mid">${gapBar()}</div>
+    <div class="band" style="padding-top:0"><div class="sec"><i style="background:var(--teal)"></i>MY TEAM<em>WIN ESTIMATE FROM AVERAGE RANK</em></div></div>
+    <div class="rowc" style="grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:18px">${ALLIES.map(p=>loadCard(p,'var(--teal)')).join('')}</div>
+    ${foot(false)}</div>`;
+}
+
+/* ───────── B · Scoreboard ───────── */
+function boardRow(p,side,sel,dm){
+  const t=side==='e'?'rgba(255,70,85,.34)':side==='a'?'rgba(43,220,185,.28)':'rgba(99,113,124,.30)', e=side==='e'?'var(--red)':side==='a'?'var(--teal)':'var(--dim)';
+  if(p.hidden) return `<div class="r hid" style="--edge:${e}"><img class="face" src="${art(p.agent,'displayicon')}" alt=""><span></span><div><div class="c nm">Hidden</div>${dm?'':`<div class="sub">${p.agent}</div>`}</div></div>`;
+  return `<div class="r${p.me?' me':''}${sel?' sel':''}" style="--tint:${t};--edge:${e}">
+    <img class="face" src="${art(p.agent,'displayicon')}" alt=""><img class="rk" src="${rankIcon(p.t)}" alt="">
+    <div style="min-width:0"><div class="line"><span class="c nm ell">${p.name}</span>${tags(p,dm)}</div>${dm?'':`<div class="sub ell">${p.agent} · ${tier(p.t)} · ${p.rr} RR</div>`}</div>
+    <span>${sq(p.form)}</span>
+    ${p.kd==null?'<span class="bone" style="width:60px;justify-self:end"></span><span class="bone" style="width:50px;justify-self:end"></span><span class="bone" style="width:50px;justify-self:end"></span>'
+      :`<span class="c v num${hot(p.kd,1.8)}">${kd(p)}</span><span class="c v num${hot(p.hs,35)}">${p.hs}%</span><span class="c v num${hot(p.adr,195)}">${p.adr}</span>`}
+    <span class="seen">${p.seen||''}</span></div>`;
+}
+const boardCols=dm=>`<div class="cols"><span></span><span></span><span>${dm?'PLAYER':'PLAYER'}</span><span>LAST 5</span><span class="rt">KD</span><span class="rt">HS</span><span class="rt">ADR</span><span class="rt">SEEN BEFORE</span></div>`;
+function focusPanel(p,label){
+  return `<aside class="focus" style="--ac:${tint(p.agent)}"><div class="txt" style="background-image:url(${art(p.agent,'background')})"></div><img class="port" src="${art(p.agent,'fullportrait')}" alt=""><div class="shade"></div>
+    <div class="in"><div class="lab"><span class="red">//</span> ${label}</div><div class="c nm ell" style="margin-top:8px">${p.name}</div>
+      <div class="rkrow"><img src="${rankIcon(p.t)}" alt=""><div><b class="c">${tier(p.t)}</b><span>${p.rr} RR · ${p.agent} · Level ${p.lv}</span></div></div>
+      ${p.smurf?`<h4>WHY THE FLAG</h4><div class="sig">${p.smurf.join('<i>//</i>')}</div>`:''}
+      <h4>PLAYS</h4>
+      <div class="mn"><span>${p.agent}</span><u><b style="width:75%"></b></u><span>75% of 4</span></div>
+      <div class="mn"><span>Jett</span><u><b style="width:100%"></b></u><span>100% of 2</span></div>
+      <div class="mn"><span>Sage</span><u><b style="width:50%;background:var(--red)"></b></u><span>50% of 4</span></div>
+      <h4>YOUR NOTE</h4><div class="field">Type a note, Enter to save</div></div></aside>`;
+}
+function scoreboard(mode){
+  if(mode==='dm'){
+    const list=[FREE[0],...FREE.slice(1).sort((a,b)=>strength(b)-strength(a))];
+    return `<div class="B dm">${header('Lotus','Deathmatch · free for all',[['Players','12'],['Hidden','3']])}
+      <div class="body"><div class="tbl"><div class="sec" style="margin-bottom:6px"><i style="background:var(--bone)"></i>PLAYERS<em>STRONGEST FIRST</em></div>${boardCols(true)}${list.map((p,i)=>boardRow(p,'f',i===1,true)).join('')}</div>${focusPanel(list[1],'Top of the lobby')}</div>${foot(true)}</div>`;
+  }
+  const en=[...ENEMIES].sort((a,b)=>strength(b)-strength(a));
+  return `<div class="B">${header('Ascent','Competitive',[['You on this map','70%'],['Win estimate','52%']])}
+    <div class="body"><div class="tbl">
+      <div class="sec" style="margin-bottom:6px"><i style="background:var(--red)"></i>ENEMY TEAM<em>${tier(avg(ENEMIES))} AVERAGE</em></div>${boardCols()}${en.map((p,i)=>boardRow(p,'e',i===0)).join('')}
+      <div class="sec" style="margin:18px 0 6px"><i style="background:var(--teal)"></i>MY TEAM<em>${tier(avg(ALLIES))} AVERAGE</em></div>${ALLIES.map(p=>boardRow(p,'a')).join('')}
+    </div>${focusPanel(en[0],'Selected player')}</div>${foot(false)}</div>`;
+}
+
+/* ───────── C · Intel ───────── */
+function intelItem(p,side,pick){
+  if(p.hidden) return `<div class="li ${side} hid"><img class="face" src="${art(p.agent,'displayicon')}" alt=""><div><div class="c nm">Hidden</div><div class="sub">${p.agent}</div></div><span></span></div>`;
+  return `<div class="li ${side}${p.me?' me':''}${pick?' pick':''}" style="--ac:${tint(p.agent)}"><img class="face" src="${art(p.agent,'displayicon')}" alt="">
+    <div style="min-width:0"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span class="c nm ell">${p.name}</span><span class="tags">${p.me?'<span class="tg you">YOU</span>':''}${p.smurf?'<span class="tg sm">SMURF?</span>':''}</span></div>
+      <div class="sub"><img src="${rankIcon(p.t)}" alt=""><span class="ell">${tier(p.t,true)} · ${p.rr} RR${p.seen?' · met before':''}</span></div></div>
+    <div class="kd${hot(p.kd,1.8)}">${p.kd==null?'<span class="bone" style="width:48px;height:22px"></span>':`<b class="c num">${kd(p)}</b>`}<span>KD</span></div></div>`;
+}
+function target(p,label){
+  return `<div class="tgt" style="--ac:${tint(p.agent)}"><div class="txt" style="background-image:url(${art(p.agent,'background')})"></div><img class="port" src="${art(p.agent,'fullportrait')}" alt=""><div class="shade"></div>
+    <div class="flag"><span class="tg" style="background:var(--red);color:#fff">${label}</span>${p.smurf?'<span class="tg sm">POSSIBLE SMURF</span>':''}</div>
+    <div class="in"><div class="c nm ell">${p.name}</div>
+      <div class="row2"><img src="${rankIcon(p.t)}" alt=""><span><b class="c" style="font-size:24px;color:var(--bone)">${tier(p.t)}</b> &nbsp;${p.rr} RR · ${p.agent} · Level ${p.lv}</span></div>
+      <div class="big"><div><b class="c num">${kd(p)}</b><span>KD</span></div><div><b class="c num">${p.hs}%</b><span>HEADSHOTS</span></div><div><b class="c num">${p.adr}</b><span>DAMAGE / ROUND</span></div></div>
+      <div class="why">${(p.smurf||['Highest rank in the lobby','Won 4 of last 5']).join('<i>//</i>')}</div></div></div>`;
+}
+function intel(mode){
+  const dm=mode==='dm', map=dm?'Lotus':'Ascent';
+  const top=`<div class="top"><div><div class="lab"><span class="red">//</span> ${dm?'Deathmatch · free for all':'Competitive'}</div><div class="c map">${map}</div></div><span class="sp"></span><span class="live"><i></i>IN GAME</span><button class="vbtn">SETTINGS</button></div>`;
+  if(dm){
+    const list=[FREE[0],...FREE.slice(1).sort((a,b)=>strength(b)-strength(a))], t=list[1];
+    return `<div class="C"><div class="wash" style="background-image:url(${splash(map)})"></div>${top}
+      <div class="cols3"><div><div class="sec"><i style="background:var(--bone)"></i>PLAYERS 1 TO 6</div>${list.slice(0,6).map(p=>intelItem(p,'f',p===t)).join('')}</div>
+        <div>${target(t,'TOP OF THE LOBBY')}</div>
+        <div><div class="sec"><i style="background:var(--bone)"></i>PLAYERS 7 TO 12</div>${list.slice(6).map(p=>intelItem(p,'f')).join('')}</div></div>
+      <div class="strip"><span><b class="c">12</b>players</span><span><b class="c">3</b>hidden</span><span><b class="c">4th</b>your rank in this lobby</span><span class="sp"></span><span>Deathmatch is shown live and not counted in your session</span></div>${foot(true)}</div>`;
+  }
+  const en=[...ENEMIES].sort((a,b)=>strength(b)-strength(a)), t=en[0];
+  return `<div class="C"><div class="wash" style="background-image:url(${splash(map)})"></div>${top}
+    <div class="cols3">
+      <div><div class="sec"><i style="background:var(--teal)"></i>MY TEAM<em>${tier(avg(ALLIES),true)} AVG</em></div>${ALLIES.map(p=>intelItem(p,'a')).join('')}</div>
+      <div><div class="est">${gapBar(true)}</div>${target(t,'WATCH OUT FOR')}</div>
+      <div><div class="sec"><i style="background:var(--red)"></i>ENEMY TEAM<em>${tier(avg(ENEMIES),true)} AVG</em></div>${en.map(p=>intelItem(p,'e',p===t)).join('')}</div>
+    </div>
+    <div class="strip"><span><b class="c">70%</b>your win rate on Ascent</span><span><b class="c">1.22</b>KD here</span><span><b class="c">Omen</b>your best agent here</span><span><b class="c">55 / 45</b>attack / defense</span><span class="sp"></span><span>Session 3W 1L · +44 RR</span></div>${foot(false)}</div>`;
+}
+
+const ABOUT={
+  1:['Match load','Modelled on the screen you see while a match loads: one tall card per player with the agent on it. Rank badge, name and three big numbers sit on a plate at the bottom. Hidden players show as a black silhouette of their agent.',
+     ['VALORANT match loading screen: tall agent cards, team colour across the top','Agent colours and artwork straight from the game','Enemy cards sorted strongest first; gold frame is you, orange frame is the flagged player'],
+     ['The most striking of the three, and the easiest to read from a distance','Needs the full agent portraits: the largest art files of the three options','Needs the wide window; narrow, the cards would have to stack']],
+  2:['Scoreboard','Modelled on the TAB scoreboard: one bar per player, tinted in the team colour, agent face on the left, rank badge, then large numbers. The selected player opens on the right with the full agent art.',
+     ['VALORANT in-game and end-of-match scoreboard','Your own row is gold, as in the game','The right panel borrows from the agent-select portrait'],
+     ['Works the same in every mode: twelve deathmatch players fit as slimmer bars','Needs only the small agent faces and rank badges for the list; one portrait for the side panel','The safest one to build first']],
+  3:['Intel','Modelled on agent select: the map behind everything, both teams as lists at the sides, and one player in the middle at full size, the one to watch out for.',
+     ['VALORANT agent select: big portrait in the middle, rosters at the sides','Map artwork as the backdrop','Cut-corner panels and the red slashes from the game\'s menus'],
+     ['Answers "who do I worry about" before anything else','Shows only KD per player in the lists; click a player to put them in the middle','Needs one full portrait at a time, plus the map picture']]
+};
+const DESIGNS=[null,matchLoad,scoreboard,intel];
+function render(){
+  document.getElementById('app').innerHTML=DESIGNS[state.d](state.m);
+  document.querySelectorAll('#designs button').forEach(b=>b.classList.toggle('on',+b.dataset.d===state.d));
+  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===state.m));
+  const a=ABOUT[state.d];
+  document.getElementById('about').innerHTML=`<div><h3>${state.d} // ${a[0]}</h3><p>${a[1]}</p></div><div><h3>Taken from</h3><ul>${a[2].map(x=>`<li>${x}</li>`).join('')}</ul></div><div><h3>What it means in the app</h3><ul>${a[3].map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  history.replaceState(null,'',`#d=${state.d}&m=${state.m}`);
+  fit();
+}
+function fit(){
+  const stage=document.querySelector('.stage'), el=document.getElementById('fit');
+  const s=Math.min(1,stage.clientWidth/1282);
+  el.style.transform=`scale(${s})`;
+  stage.style.height=(el.offsetHeight*s)+'px';
+}
+const h=new URLSearchParams(location.hash.slice(1));
+if(h.get('d')) state.d=Math.min(3,Math.max(1,+h.get('d')||1));
+if(h.get('m')==='dm') state.m='dm';
+document.getElementById('designs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){state.d=+b.dataset.d;render()}});
+document.getElementById('modes').addEventListener('click',e=>{const b=e.target.closest('button');if(b){state.m=b.dataset.m;render()}});
+document.addEventListener('keydown',e=>{if(['1','2','3'].includes(e.key)){state.d=+e.key;render()}if(e.key==='d'||e.key==='D'){state.m=state.m==='dm'?'5v5':'dm';render()}});
+window.addEventListener('resize',fit);
+window.addEventListener('load',fit);
+render();
+</script>
+</body>
+</html>

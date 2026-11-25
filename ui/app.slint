@@ -1,0 +1,1501 @@
+import { T } from "tokens.slint";
+import { Art } from "art.slint";
+
+export enum UiPhase { closed, menu, queue, agent-select, in-game, post-game }
+
+export struct PlayerRow {
+    // which row this is ("a0" to "e4"), for selecting it; empty for a hidden player
+    key: string,
+    name: string,
+    // the name in capitals, as it is drawn
+    caps: string,
+    tag: string,
+    hidden: bool,
+    me: bool,
+    // the name lookup finished without a name
+    unnamed: bool,
+    agent: string,
+    // first letter of the agent, for when there is no picture of them
+    initial: string,
+    role: string,
+    // an agent is chosen, locked or not
+    picked: bool,
+    locked: bool,
+    // -1 when not shown
+    level: int,
+    party: int,
+    // stats are looked up for this player at all
+    stats-on: bool,
+    rank-done: bool,
+    // "Asc 2", and in capitals for the side panel
+    rank: string,
+    rank-caps: string,
+    // the rank as the game numbers it, for the badge; 0 when unknown
+    tier: int,
+    rr: string,
+    peak: string,
+    stats-done: bool,
+    // newest first: 1 win, 0 loss, 2 draw
+    form: [int],
+    kd: string,
+    hs: string,
+    adr: string,
+    kd-hot: bool,
+    hs-hot: bool,
+    adr-hot: bool,
+    seen: string,
+    seen-short: string,
+    smurf: bool,
+    signals: string,
+    mains: string,
+    on-map: string,
+    note: string,
+}
+
+export struct MapLine {
+    name: string,
+    pct: int,
+    line: string,
+}
+
+// Small capitals with wide spacing: every label in the window.
+component Label inherits Text {
+    color: T.mut;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.9px;
+    vertical-alignment: center;
+}
+
+// A label with the game's red slashes in front.
+component Slashed inherits HorizontalLayout {
+    in property <string> text;
+    in property <color> tint: T.mut;
+    spacing: 6px;
+    alignment: start;
+    Label {
+        text: "//";
+        color: T.red;
+    }
+    Label {
+        text: root.text;
+        color: root.tint;
+    }
+}
+
+// A small solid tag: YOU, SMURF?, DUO, NOTE.
+component Tag inherits Rectangle {
+    in property <string> label;
+    in property <color> tint: T.bone;
+    height: 18px;
+    width: caption.preferred-width + 14px;
+    background: root.tint;
+    caption := Text {
+        text: root.label;
+        color: T.navy;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+    }
+}
+
+// An outlined button, as in the game's menus.
+component VButton inherits Rectangle {
+    in property <string> label;
+    callback clicked();
+    height: 34px;
+    width: caption.preferred-width + 36px;
+    border-width: 1px;
+    border-color: #ece8e173;
+    background: touch.has-hover ? #ece8e126 : #0f192380;
+    caption := Text {
+        text: root.label;
+        color: T.bone;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1.9px;
+    }
+    touch := TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// Recent results as letters, newest on the left: W W L W L.
+component WL inherits HorizontalLayout {
+    in property <[int]> results;
+    in property <length> size: 17px;
+    spacing: 5px;
+    alignment: start;
+    horizontal-stretch: 0;
+    for r in root.results: Text {
+        text: r == 1 ? "W" : r == 0 ? "L" : "D";
+        color: r == 1 ? T.teal : r == 0 ? T.red : T.dim;
+        font-size: root.size;
+        font-weight: 700;
+        vertical-alignment: center;
+    }
+}
+
+// A placeholder for a value that is still loading. Same size as the value it stands for.
+component Bone inherits VerticalLayout {
+    in property <length> w;
+    in property <length> h: 10px;
+    alignment: center;
+    Rectangle {
+        width: root.w;
+        height: root.h;
+        background: T.p3;
+    }
+}
+
+// One player: a bar tinted in the team colour, as on the game's scoreboard.
+component PlayerBar inherits Rectangle {
+    in property <PlayerRow> p;
+    // 0 my team, 1 enemy team, 2 a match without teams
+    in property <int> side;
+    in property <bool> dense;
+    // narrow window: no seen-before, HS or ADR columns
+    in property <bool> tight;
+    // very narrow: no W/L column either
+    in property <bool> tiny;
+    // no room for the seen-before column (it is still in the side panel)
+    in property <bool> noseen;
+    in property <bool> selected;
+    callback clicked();
+
+    property <color> edge: root.p.me ? T.gold : root.side == 1 ? T.red : root.side == 0 ? T.teal : T.dim;
+    property <color> tint: root.p.me ? T.bar-me : root.side == 1 ? T.bar-enemy : root.side == 0 ? T.bar-ally : T.bar-free;
+    property <color> rest: root.p.me ? T.bar-me-rest : T.p2;
+    property <string> sub: root.p.hidden ? root.p.agent
+        : (!root.p.picked ? "Picking an agent" : root.p.agent == "" ? "Agent" : root.p.agent)
+            + (root.p.rank == "" ? "" : "  ·  " + root.p.rank + (root.p.rr == "" ? "" : "  ·  " + root.p.rr))
+            + (root.p.picked && !root.p.locked ? "  ·  not locked" : "");
+    property <length> number-size: root.dense ? 20px : 23px;
+
+    height: root.dense ? T.bar-dense : T.bar-height;
+    background: root.p.hidden ? T.p1 : @linear-gradient(90deg, root.tint 0%, root.rest 46%, root.rest 100%);
+
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: 4px;
+        height: parent.height;
+        background: root.p.hidden ? T.line : root.edge;
+    }
+
+    HorizontalLayout {
+        padding-left: 4px;
+        padding-right: root.tight ? 10px : 14px;
+        spacing: root.tight ? 9px : 12px;
+
+        // the agent
+        Rectangle {
+            width: 52px;
+            clip: true;
+            if Art.has-face(root.p.agent): Image {
+                x: 0;
+                y: 0;
+                width: 52px;
+                height: parent.height;
+                source: Art.face(root.p.agent);
+                image-fit: cover;
+                opacity: root.p.hidden ? 0.22 : 1;
+            }
+            if !Art.has-face(root.p.agent): Text {
+                text: root.p.initial;
+                color: root.p.hidden ? T.dim : T.bone;
+                font-size: 22px;
+                font-weight: 700;
+            }
+        }
+
+        // the rank badge
+        Rectangle {
+            width: root.dense ? 32px : 38px;
+            if !root.p.hidden && root.p.rank != "" && Art.has-rank(root.p.tier): Image {
+                width: parent.width;
+                height: parent.width;
+                source: Art.rank(root.p.tier);
+            }
+            if root.p.stats-on && !root.p.rank-done && root.p.rank == "": Rectangle {
+                width: 22px;
+                height: 22px;
+                background: T.p3;
+            }
+        }
+
+        // who
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 3px;
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+                if root.p.hidden: Text {
+                    text: "HIDDEN";
+                    color: T.dim;
+                    font-size: root.dense ? 19px : 21px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                }
+                if !root.p.hidden && root.p.name != "": Text {
+                    text: root.p.caps;
+                    color: T.bone;
+                    font-size: root.dense || root.noseen ? 19px : 21px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                if !root.p.hidden && root.p.unnamed: Text {
+                    text: "NAME UNAVAILABLE";
+                    color: T.mut;
+                    font-size: 16px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                if !root.p.hidden && root.p.name == "" && !root.p.unnamed: Bone {
+                    w: 150px;
+                    h: 14px;
+                }
+                if root.p.me: VerticalLayout {
+                    alignment: center;
+                    Tag {
+                        label: "YOU";
+                        tint: T.gold;
+                    }
+                }
+                if root.p.smurf: VerticalLayout {
+                    alignment: center;
+                    Tag {
+                        label: "SMURF?";
+                        tint: T.warn;
+                    }
+                }
+                if root.p.party > 0 && !root.noseen: VerticalLayout {
+                    alignment: center;
+                    Tag {
+                        label: "PARTY";
+                    }
+                }
+                if root.p.note != "" && !root.noseen: VerticalLayout {
+                    alignment: center;
+                    Tag {
+                        label: "NOTE";
+                        tint: T.blue;
+                    }
+                }
+            }
+            if !root.dense: Text {
+                text: root.sub;
+                color: root.p.hidden ? T.dim : T.mut;
+                font-size: 13px;
+                overflow: elide;
+            }
+        }
+
+        // last five
+        if !root.tiny: VerticalLayout {
+            width: 86px;
+            alignment: center;
+            if root.p.form.length > 0: WL {
+                results: root.p.form;
+            }
+            if root.p.stats-on && root.p.form.length == 0 && !root.p.stats-done: Bone {
+                w: 70px;
+            }
+        }
+
+        // the numbers
+        Rectangle {
+            width: 60px;
+            if root.p.kd != "": Text {
+                width: parent.width;
+                text: root.p.kd;
+                color: root.p.kd-hot ? T.warn : T.bone;
+                font-size: root.number-size;
+                font-weight: 700;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+            }
+            if root.p.stats-on && root.p.kd == "" && !root.p.stats-done: Rectangle {
+                x: parent.width - self.width;
+                width: 44px;
+                height: 12px;
+                background: T.p3;
+            }
+        }
+        if !root.tight: Text {
+            width: 56px;
+            text: root.p.hs;
+            color: root.p.hs-hot ? T.warn : T.bone;
+            font-size: root.number-size;
+            font-weight: 700;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+        }
+        if !root.tight: Text {
+            width: 52px;
+            text: root.p.adr;
+            color: root.p.adr-hot ? T.warn : T.bone;
+            font-size: root.number-size;
+            font-weight: 700;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+        }
+
+        // have we met
+        if !root.tight && !root.noseen: Text {
+            width: 150px;
+            text: root.p.seen;
+            color: T.blue;
+            font-size: 13px;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+            wrap: word-wrap;
+        }
+    }
+
+    if root.selected: Rectangle {
+        border-width: 1px;
+        border-color: T.bone;
+    }
+    if !root.p.hidden && root.p.key != "": TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// The line of column names above the first team.
+component Columns inherits HorizontalLayout {
+    in property <bool> tight;
+    in property <bool> tiny;
+    in property <bool> noseen;
+    in property <bool> dense;
+    // a finished match's scoreboard: there is no "last 5", and the last column is the score
+    in property <bool> board;
+    height: 18px;
+    padding-left: 4px;
+    padding-right: root.tight ? 10px : 14px;
+    spacing: root.tight ? 9px : 12px;
+    Rectangle {
+        width: 52px;
+    }
+    Rectangle {
+        width: root.dense ? 32px : 38px;
+    }
+    Label {
+        horizontal-stretch: 1;
+        text: "PLAYER";
+        color: T.dim;
+    }
+    if !root.tiny: Label {
+        width: 86px;
+        text: root.board ? "" : "LAST 5";
+        color: T.dim;
+    }
+    Label {
+        width: 60px;
+        text: "KD";
+        color: T.dim;
+        horizontal-alignment: right;
+    }
+    if !root.tight: Label {
+        width: 56px;
+        text: "HS";
+        color: T.dim;
+        horizontal-alignment: right;
+    }
+    if !root.tight: Label {
+        width: 52px;
+        text: "ADR";
+        color: T.dim;
+        horizontal-alignment: right;
+    }
+    if !root.tight && !root.noseen: Label {
+        width: 150px;
+        text: root.board ? "THIS MATCH" : "SEEN BEFORE";
+        color: T.dim;
+        horizontal-alignment: right;
+    }
+}
+
+// One team: a title and its bars.
+component Section inherits VerticalLayout {
+    in property <string> title;
+    in property <color> tint;
+    in property <[PlayerRow]> players;
+    in property <int> side;
+    in property <bool> dense;
+    in property <bool> tight;
+    in property <bool> tiny;
+    in property <bool> noseen;
+    // the column names go under this team's title
+    in property <bool> columns;
+    in property <bool> board;
+    in property <string> selected;
+    // shown instead of bars when there are none and none are coming yet
+    in property <string> empty-note;
+    // the roster itself is still loading
+    in property <bool> loading;
+    callback picked(PlayerRow);
+    spacing: T.bar-gap;
+    alignment: start;
+
+    HorizontalLayout {
+        height: 24px;
+        spacing: 10px;
+        alignment: start;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 10px;
+                height: 10px;
+                background: root.tint;
+            }
+        }
+        Text {
+            text: root.title;
+            color: T.bone;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2.4px;
+            vertical-alignment: center;
+        }
+    }
+    if root.columns: Columns {
+        tight: root.tight;
+        tiny: root.tiny;
+        noseen: root.noseen;
+        dense: root.dense;
+        board: root.board;
+    }
+    for p in root.players: PlayerBar {
+        p: p;
+        side: root.side;
+        dense: root.dense;
+        tight: root.tight;
+        tiny: root.tiny;
+        noseen: root.noseen;
+        selected: p.key != "" && p.key == root.selected;
+        clicked => {
+            root.picked(p);
+        }
+    }
+    if root.players.length == 0 && root.loading: VerticalLayout {
+        spacing: T.bar-gap;
+        for i in 5: Rectangle {
+            height: T.bar-height;
+            background: T.p1;
+        }
+    }
+    if root.players.length == 0 && !root.loading && root.empty-note != "": Rectangle {
+        height: T.bar-height;
+        background: T.p1;
+        border-width: 1px;
+        border-color: T.line;
+        Label {
+            text: root.empty-note;
+            color: T.dim;
+        }
+    }
+}
+
+// The player in focus, with their agent's art: the selected one, or the one to watch out for.
+component Focus inherits Rectangle {
+    in property <PlayerRow> p;
+    in property <string> heading;
+    in-out property <string> draft;
+    in-out property <bool> saved;
+    // under the list in a narrow window: text only, no picture behind it
+    in property <bool> plain;
+    callback save(string);
+    background: root.plain ? T.p1 : T.navy;
+    clip: true;
+
+    if !root.plain && Art.has-panel(root.p.agent): Image {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        height: parent.width * 840 / 516;
+        source: Art.panel(root.p.agent);
+        image-fit: fill;
+    }
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: 1px;
+        height: parent.height;
+        background: T.line;
+    }
+
+    VerticalLayout {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        height: parent.height;
+        alignment: end;
+        padding: root.plain ? 14px : 24px;
+        padding-bottom: root.plain ? 12px : 22px;
+        spacing: root.plain ? 5px : 8px;
+
+        Slashed {
+            text: root.heading;
+        }
+        Text {
+            text: root.p.name == "" ? "PLAYER" : root.p.caps;
+            color: T.bone;
+            font-size: 28px;
+            font-weight: 700;
+            overflow: elide;
+        }
+        HorizontalLayout {
+            spacing: 12px;
+            alignment: start;
+            if root.p.rank != "" && Art.has-rank(root.p.tier): Image {
+                width: 50px;
+                height: 50px;
+                source: Art.rank(root.p.tier);
+            }
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+                Text {
+                    text: root.p.rank-caps != "" ? root.p.rank-caps
+                        : !root.p.stats-on ? "STATS OFF" : root.p.rank-done ? "NO RANK" : "RANK LOADING";
+                    color: T.bone;
+                    font-size: 22px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: root.p.rr + (root.p.rr != "" && root.p.agent != "" ? "  ·  " : "") + root.p.agent
+                        + ((root.p.rr != "" || root.p.agent != "") && root.p.level >= 0 ? "  ·  " : "")
+                        + (root.p.level >= 0 ? "Level " + root.p.level : "")
+                        + (root.p.peak == "" ? "" : "  ·  " + root.p.peak);
+                    color: T.mut;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+        if root.p.smurf: VerticalLayout {
+            spacing: 5px;
+            padding-top: 8px;
+            Label {
+                text: "WHY THE FLAG";
+                color: T.red;
+                horizontal-alignment: left;
+            }
+            Text {
+                text: root.p.signals;
+                color: T.bone;
+                font-size: 15px;
+                wrap: word-wrap;
+            }
+        }
+        if root.p.mains != "": VerticalLayout {
+            spacing: 5px;
+            padding-top: 8px;
+            Label {
+                text: "PLAYS";
+                color: T.red;
+                horizontal-alignment: left;
+            }
+            Text {
+                text: root.p.mains;
+                color: T.bone;
+                font-size: 14px;
+                wrap: word-wrap;
+            }
+        }
+        if root.p.on-map != "" || root.p.seen != "": VerticalLayout {
+            spacing: 5px;
+            padding-top: 8px;
+            Label {
+                text: root.p.seen != "" ? "SEEN BEFORE" : "ON THIS MAP";
+                color: T.red;
+                horizontal-alignment: left;
+            }
+            Text {
+                text: root.p.seen != "" ? root.p.seen + (root.p.on-map != "" ? "\nOn this map  " + root.p.on-map : "") : root.p.on-map;
+                color: root.p.seen != "" ? T.blue : T.bone;
+                font-size: 14px;
+                wrap: word-wrap;
+            }
+        }
+        VerticalLayout {
+            spacing: 2px;
+            padding-top: 8px;
+            HorizontalLayout {
+                Label {
+                    horizontal-stretch: 1;
+                    text: "YOUR NOTE";
+                    color: T.red;
+                    horizontal-alignment: left;
+                }
+                Label {
+                    text: root.saved ? "SAVED" : "ENTER TO SAVE";
+                    color: T.dim;
+                }
+            }
+            Rectangle {
+                height: 34px;
+                note := TextInput {
+                    x: 0;
+                    width: parent.width;
+                    height: parent.height;
+                    text <=> root.draft;
+                    color: T.bone;
+                    font-size: 14px;
+                    single-line: true;
+                    vertical-alignment: center;
+                    accepted => {
+                        root.save(self.text);
+                        root.saved = true;
+                    }
+                    edited => {
+                        root.saved = false;
+                    }
+                }
+                if root.draft == "" && !note.has-focus: Text {
+                    x: 0;
+                    height: parent.height;
+                    text: "Type a note";
+                    color: T.dim;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                }
+                Rectangle {
+                    x: 0;
+                    y: parent.height - 1px;
+                    width: parent.width;
+                    height: 1px;
+                    background: note.has-focus ? T.bone : #ece8e173;
+                }
+            }
+        }
+    }
+}
+
+// A titled panel with the red edge.
+component Block inherits Rectangle {
+    in property <string> title;
+    background: T.p1;
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: 3px;
+        height: parent.height;
+        background: T.red;
+    }
+    VerticalLayout {
+        padding: 16px;
+        padding-left: 20px;
+        spacing: 8px;
+        if root.title != "": Slashed {
+            text: root.title;
+        }
+        @children
+    }
+}
+
+// The finished match, in three lines.
+component Recap inherits Block {
+    in property <int> result;
+    in property <string> headline;
+    in property <string> line;
+    in property <string> extra;
+    title: "LAST MATCH";
+    Text {
+        text: root.headline;
+        color: root.result == 1 ? T.teal : root.result == 2 ? T.red : T.bone;
+        font-size: 26px;
+        font-weight: 700;
+        wrap: word-wrap;
+    }
+    if root.line != "": Text {
+        text: root.line;
+        color: T.bone;
+        font-size: 16px;
+        wrap: word-wrap;
+    }
+    if root.extra != "": Text {
+        text: root.extra;
+        color: T.mut;
+        font-size: 13px;
+        wrap: word-wrap;
+    }
+}
+
+// One line of advice, set apart.
+component Notice inherits Rectangle {
+    in property <string> message;
+    background: #ffb6481f;
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: 3px;
+        height: parent.height;
+        background: T.warn;
+    }
+    VerticalLayout {
+        padding: 12px;
+        padding-left: 18px;
+        Text {
+            text: root.message;
+            color: T.warn;
+            font-size: 15px;
+            wrap: word-wrap;
+        }
+    }
+}
+
+// A choice between two or three words.
+component Seg inherits HorizontalLayout {
+    in property <[string]> options;
+    in property <string> value;
+    callback pick(string);
+    spacing: 3px;
+    alignment: end;
+    for o in root.options: Rectangle {
+        height: 30px;
+        width: max(54px, word.preferred-width + 26px);
+        background: o == root.value ? T.red : transparent;
+        border-width: 1px;
+        border-color: o == root.value ? T.red : T.line;
+        word := Label {
+            text: o;
+            color: o == root.value ? white : T.mut;
+        }
+        TouchArea {
+            clicked => {
+                root.pick(o);
+            }
+        }
+    }
+}
+
+component SettingRow inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> hint;
+    in property <[string]> options;
+    in property <string> value;
+    callback pick(string);
+    spacing: 14px;
+    VerticalLayout {
+        horizontal-stretch: 1;
+        alignment: center;
+        spacing: 2px;
+        Text {
+            text: root.label;
+            color: T.bone;
+            font-size: 16px;
+            font-weight: 600;
+            wrap: word-wrap;
+        }
+        Text {
+            text: root.hint;
+            color: T.dim;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+    }
+    VerticalLayout {
+        alignment: center;
+        Seg {
+            options: root.options;
+            value: root.value;
+            pick(v) => {
+                root.pick(v);
+            }
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    in property <UiPhase> phase: UiPhase.closed;
+    in property <string> status: "WAITING FOR VALORANT";
+    in property <string> detail;
+    // the map in capitals, and under the name the art is filed by
+    in property <string> map;
+    in property <string> map-key;
+    in property <string> queue;
+    in property <[PlayerRow]> allies;
+    in property <[PlayerRow]> enemies;
+    in property <bool> key-found;
+    // the match on screen has nobody on the other side (deathmatch, or a custom game alone)
+    in property <bool> one-list;
+    // the rows are a finished match's scoreboard: that match's numbers, nothing to click
+    in property <bool> board;
+    // the round score while a match is on, "7 - 5"
+    in property <string> score;
+
+    // from the stats worker
+    in property <string> my-rank;
+    in property <string> session-title;
+    in property <string> session-line;
+    in property <string> session-extra;
+    in property <[int]> session-dots;
+    in property <[MapLine]> maps;
+    in property <int> recap-result;
+    in property <string> recap-title;
+    in property <string> recap-line;
+    in property <string> recap-extra;
+    in property <string> nudge;
+    in property <string> map-line;
+    // my win rate on this map, "70%"; empty when unknown
+    in property <string> map-win;
+    // 0 to 100: my team's estimated chance; -1 when there is none
+    in property <int> gap-pct: -1;
+    in property <string> gap-label;
+    in property <string> stats-status;
+    in property <string> store-status;
+    // the version a click would update to (empty: none), and what the updater last did
+    in property <string> update;
+    in property <string> update-status;
+    in property <string> app-version;
+
+    // settings as stored
+    in property <string> set-lookup: "on";
+    in property <string> set-smurf: "on";
+    in property <string> set-estimate: "on";
+    in property <string> set-seen: "on";
+    in property <string> set-nudge: "3";
+    in property <string> set-after: "on";
+    in property <string> set-updates: "on";
+
+    // the row the user clicked, and the player shown in the side panel (that row, or one
+    // picked for them when nothing is clicked)
+    in-out property <string> sel-key;
+    in-out property <PlayerRow> sel-row;
+    in-out property <string> note-draft;
+    in-out property <bool> note-saved;
+    // 0 the match view, 1 settings
+    in-out property <int> page: 0;
+
+    callback note-edited(string, string);
+    callback setting-changed(string, string);
+    callback update-now();
+
+    title: "Sightline";
+    icon: @image-url("../assets/icon/sightline.png");
+    background: T.navy;
+    default-font-family: T.font;
+    preferred-width: 1180px;
+    preferred-height: 840px;
+    min-width: 420px;
+    min-height: 480px;
+    max-width: T.max-width;
+
+    property <bool> wide: root.width >= T.wide-from;
+    // what the list has to itself once the side panel has taken its share
+    property <length> focus-w: root.width < 1100px ? 300px : T.focus-width;
+    property <length> list-width: root.width - (root.wide && root.focus-on ? root.focus-w : 0px);
+    property <bool> tight: root.list-width < 560px;
+    property <bool> tiny: root.list-width < 440px;
+    property <bool> noseen: root.list-width < 760px;
+    // the strip under the list: my record on this map, and how the teams compare
+    property <string> strip: root.map-line + (root.map-line != "" && root.gap-label != "" ? "    //    " : "")
+        + (root.gap-label != "" ? "Rank gap:  " + root.gap-label : "");
+    property <length> pad: root.width < T.tight-below ? 14px : 30px;
+    property <bool> has-lobby: root.allies.length > 0 || root.enemies.length > 0;
+    property <bool> live: root.phase == UiPhase.agent-select || root.phase == UiPhase.in-game;
+    property <bool> dense: root.allies.length + root.enemies.length > 10;
+    property <bool> has-history: root.session-title != "" || root.maps.length > 0 || root.recap-title != "";
+    property <bool> focus-on: root.has-lobby && root.sel-row.key != "";
+    property <color> status-tint: root.phase == UiPhase.closed ? T.dim
+        : root.phase == UiPhase.in-game ? T.teal
+        : root.phase == UiPhase.agent-select || root.phase == UiPhase.queue ? T.warn
+        : T.blue;
+    property <string> focus-heading: root.sel-key != "" ? "SELECTED PLAYER"
+        : root.sel-row.me ? "YOU" : root.one-list ? "TOP OF THE LOBBY" : "WATCH OUT FOR";
+
+    function select(p: PlayerRow) {
+        if (p.key == root.sel-key) {
+            root.sel-key = "";
+        } else {
+            root.sel-key = p.key;
+            root.sel-row = p;
+            root.note-draft = p.note;
+            root.note-saved = false;
+        }
+    }
+
+    // Explicit geometry: the window's size limits must not depend on its content.
+    VerticalLayout {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+
+        // header: the map, with its picture behind
+        Rectangle {
+            height: root.tight ? 76px : T.header-height;
+            background: T.ink;
+            clip: true;
+            if root.page == 0 && Art.has-map(root.map-key): Image {
+                x: 0;
+                y: 0;
+                width: parent.width;
+                height: parent.height;
+                source: Art.map(root.map-key);
+                image-fit: cover;
+            }
+            HorizontalLayout {
+                padding-left: root.pad;
+                padding-right: root.pad;
+                spacing: root.tight ? 12px : 26px;
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 2px;
+                    Slashed {
+                        text: root.page == 1 ? "SIGHTLINE"
+                            : root.queue != "" && root.my-rank != "" ? root.queue + "  ·  " + root.my-rank
+                            : root.queue != "" ? root.queue
+                            : root.my-rank != "" ? root.my-rank : "MATCH COMPANION";
+                    }
+                    Text {
+                        text: root.page == 1 ? "SETTINGS" : root.map != "" ? root.map : "SIGHTLINE";
+                        color: T.bone;
+                        font-size: root.tight ? 32px : 46px;
+                        font-weight: 700;
+                        overflow: elide;
+                    }
+                }
+                if !root.tight && root.page == 0 && root.score != "": HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 2px;
+                            height: 44px;
+                            background: T.red;
+                        }
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        Label {
+                            text: "ROUNDS";
+                            horizontal-alignment: left;
+                        }
+                        Text {
+                            text: root.score;
+                            color: T.bone;
+                            font-size: 24px;
+                            font-weight: 700;
+                        }
+                    }
+                }
+                if root.wide && root.page == 0 && root.map-win != "": HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 2px;
+                            height: 44px;
+                            background: T.red;
+                        }
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        Label {
+                            text: "YOU ON THIS MAP";
+                            horizontal-alignment: left;
+                        }
+                        Text {
+                            text: root.map-win;
+                            color: T.bone;
+                            font-size: 24px;
+                            font-weight: 700;
+                        }
+                    }
+                }
+                if root.wide && root.page == 0 && root.gap-pct >= 0: HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 2px;
+                            height: 44px;
+                            background: T.red;
+                        }
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        Label {
+                            text: "WIN ESTIMATE";
+                            horizontal-alignment: left;
+                        }
+                        Text {
+                            text: root.gap-pct + "%";
+                            color: T.bone;
+                            font-size: 24px;
+                            font-weight: 700;
+                        }
+                    }
+                }
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+                if !root.tiny: HorizontalLayout {
+                    horizontal-stretch: 0;
+                    spacing: 8px;
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 8px;
+                            height: 8px;
+                            background: root.status-tint;
+                        }
+                    }
+                    Label {
+                        text: root.status;
+                        color: root.status-tint;
+                        font-size: 12px;
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    VButton {
+                        label: root.page == 1 ? "BACK" : "SETTINGS";
+                        clicked => {
+                            root.page = root.page == 1 ? 0 : 1;
+                        }
+                    }
+                }
+            }
+        }
+        Rectangle {
+            height: 1px;
+            background: T.line;
+        }
+
+        // the match: the list, and the player in focus beside it
+        if root.page == 0 && (root.has-lobby || root.live): HorizontalLayout {
+            vertical-stretch: 1;
+            Flickable {
+                horizontal-stretch: 1;
+                content-width: self.width;
+                content-height: max(self.height, body.min-height);
+                body := VerticalLayout {
+                    width: parent.content-width;
+                    height: parent.content-height;
+                    alignment: start;
+                    padding-left: root.pad;
+                    padding-right: root.tight ? 14px : 22px;
+                    padding-top: 10px;
+                    padding-bottom: 12px;
+                    spacing: 10px;
+                    if (root.board || root.phase == UiPhase.post-game) && root.recap-title != "": Recap {
+                        result: root.recap-result;
+                        headline: root.recap-title;
+                        line: root.recap-line;
+                        extra: root.recap-extra;
+                    }
+                    if (root.board || root.phase == UiPhase.post-game) && root.nudge != "": Notice {
+                        message: root.nudge;
+                    }
+                    if !root.one-list: Section {
+                        title: "ENEMY TEAM";
+                        tint: T.red;
+                        players: root.enemies;
+                        side: 1;
+                        columns: true;
+                        board: root.board;
+                        dense: root.dense;
+                        tight: root.tight;
+                        tiny: root.tiny;
+                        noseen: root.noseen;
+                        selected: root.sel-key != "" ? root.sel-key : root.sel-row.key;
+                        empty-note: root.phase == UiPhase.agent-select ? "SHOWN WHEN THE MATCH LOADS" : "";
+                        loading: root.phase != UiPhase.agent-select;
+                        picked(p) => {
+                            root.select(p);
+                        }
+                    }
+                    Section {
+                        title: root.one-list ? "PLAYERS" : "MY TEAM";
+                        tint: root.one-list ? T.bone : T.teal;
+                        players: root.allies;
+                        side: root.one-list ? 2 : 0;
+                        columns: root.one-list;
+                        dense: root.dense;
+                        tight: root.tight;
+                        tiny: root.tiny;
+                        noseen: root.noseen;
+                        selected: root.sel-key != "" ? root.sel-key : root.sel-row.key;
+                        loading: true;
+                        picked(p) => {
+                            root.select(p);
+                        }
+                    }
+                }
+            }
+            if root.wide && root.focus-on: Focus {
+                width: root.focus-w;
+                p: root.sel-row;
+                heading: root.focus-heading;
+                draft <=> root.note-draft;
+                saved <=> root.note-saved;
+                save(text) => {
+                    root.note-edited(root.sel-row.key, text);
+                }
+            }
+        }
+
+        // idle: the session so far, or one calm line when there is nothing to show yet
+        if root.page == 0 && !root.has-lobby && !root.live: Flickable {
+            vertical-stretch: 1;
+            content-width: self.width;
+            content-height: max(self.height, idle.min-height);
+            idle := VerticalLayout {
+                width: parent.content-width;
+                height: parent.content-height;
+                alignment: root.has-history ? start : center;
+                padding: root.pad;
+                spacing: 14px;
+                VerticalLayout {
+                    spacing: 6px;
+                    padding-bottom: root.has-history ? 6px : 40px;
+                    Text {
+                        text: root.phase == UiPhase.closed ? "GAME NOT RUNNING"
+                            : root.phase == UiPhase.queue ? "SEARCHING FOR A MATCH"
+                            : root.phase == UiPhase.post-game ? "MATCH OVER"
+                            : "READY";
+                        color: T.bone;
+                        font-size: 34px;
+                        font-weight: 700;
+                        horizontal-alignment: root.has-history ? left : center;
+                        wrap: word-wrap;
+                    }
+                    Text {
+                        text: root.phase == UiPhase.closed ? "Sightline wakes up when VALORANT starts."
+                            : root.phase == UiPhase.queue ? "The lobby appears here as soon as one is found."
+                            : "The lobby appears here when the match starts.";
+                        color: T.mut;
+                        font-size: 15px;
+                        horizontal-alignment: root.has-history ? left : center;
+                        wrap: word-wrap;
+                    }
+                }
+                if root.nudge != "": Notice {
+                    message: root.nudge;
+                }
+                if root.recap-title != "": Recap {
+                    result: root.recap-result;
+                    headline: root.recap-title;
+                    line: root.recap-line;
+                    extra: root.recap-extra;
+                }
+                if root.session-title != "": Block {
+                    title: root.session-title;
+                    Text {
+                        text: root.session-line;
+                        color: T.bone;
+                        font-size: 22px;
+                        font-weight: 700;
+                        wrap: word-wrap;
+                    }
+                    WL {
+                        height: 22px;
+                        results: root.session-dots;
+                        size: 19px;
+                    }
+                    Text {
+                        text: root.session-extra;
+                        color: T.mut;
+                        font-size: 14px;
+                        wrap: word-wrap;
+                    }
+                }
+                if root.maps.length > 0: Block {
+                    title: "MY MAPS, ALL RANKED ON RECORD";
+                    for m in root.maps: HorizontalLayout {
+                        height: 26px;
+                        spacing: 14px;
+                        Text {
+                            width: 96px;
+                            text: m.name;
+                            color: T.bone;
+                            font-size: 17px;
+                            font-weight: 700;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+                        VerticalLayout {
+                            width: 96px;
+                            alignment: center;
+                            Rectangle {
+                                height: 8px;
+                                background: T.p3;
+                                Rectangle {
+                                    x: 0;
+                                    y: 0;
+                                    width: parent.width * m.pct / 100;
+                                    height: parent.height;
+                                    background: m.pct >= 50 ? T.teal : T.red;
+                                }
+                            }
+                        }
+                        Text {
+                            horizontal-stretch: 1;
+                            text: m.line;
+                            color: T.mut;
+                            font-size: 14px;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+                    }
+                }
+            }
+        }
+
+        // settings
+        if root.page == 1: Flickable {
+            vertical-stretch: 1;
+            content-width: self.width;
+            content-height: max(self.height, prefs.min-height);
+            prefs := VerticalLayout {
+                width: parent.content-width;
+                height: parent.content-height;
+                alignment: start;
+                padding: root.pad;
+                spacing: 14px;
+                Block {
+                    title: "STATS KEY";
+                    Text {
+                        text: root.key-found ? "FOUND" : "MISSING";
+                        color: root.key-found ? T.teal : T.warn;
+                        font-size: 22px;
+                        font-weight: 700;
+                    }
+                    Text {
+                        text: root.key-found
+                            ? "Read from the HENRIKDEV_API_KEY user variable. It is never shown, logged or saved."
+                            : "Ranks and match history are off. To turn them on, set the HENRIKDEV_API_KEY user variable in Windows and start Sightline again. The player list, notes and seen-before work without it.";
+                        color: T.mut;
+                        font-size: 14px;
+                        wrap: word-wrap;
+                    }
+                }
+                Block {
+                    title: "FEATURES";
+                    SettingRow {
+                        label: "Look up other players";
+                        hint: "Off: only your own rank and history are fetched. Nobody else's id leaves this PC.";
+                        options: ["on", "off"];
+                        value: root.set-lookup;
+                        pick(v) => {
+                            root.setting-changed("lookup", v);
+                        }
+                    }
+                    SettingRow {
+                        label: "Smurf flag";
+                        hint: "Marks a new account with unusually strong recent results. Click the player to see why.";
+                        options: ["on", "off"];
+                        value: root.set-smurf;
+                        pick(v) => {
+                            root.setting-changed("smurf", v);
+                        }
+                    }
+                    SettingRow {
+                        label: "Win estimate";
+                        hint: "From the average rank of both teams. 'bar' keeps the comparison and drops the percentage.";
+                        options: ["on", "bar", "off"];
+                        value: root.set-estimate;
+                        pick(v) => {
+                            root.setting-changed("estimate", v);
+                        }
+                    }
+                    SettingRow {
+                        label: "Seen before";
+                        hint: "Remembers the players from your matches. Off: no new meetings are remembered or shown.";
+                        options: ["on", "off"];
+                        value: root.set-seen;
+                        pick(v) => {
+                            root.setting-changed("seen", v);
+                        }
+                    }
+                    SettingRow {
+                        label: "Names after the match";
+                        hint: "Once a match is over, its scoreboard names the players who hid their name while it was live, as the game does. Off: they stay 'Hidden' there too and nothing about them is kept.";
+                        options: ["on", "off"];
+                        value: root.set-after;
+                        pick(v) => {
+                            root.setting-changed("after", v);
+                        }
+                    }
+                    SettingRow {
+                        label: "Break reminder";
+                        hint: "One line after this many losses in a row.";
+                        options: ["off", "2", "3"];
+                        value: root.set-nudge;
+                        pick(v) => {
+                            root.setting-changed("nudge", v);
+                        }
+                    }
+                }
+                Block {
+                    title: "UPDATES";
+                    SettingRow {
+                        label: "Check for updates";
+                        hint: "Once a day, asks GitHub whether there is a newer release. Nothing about you or the game is sent. Installing is always your click.";
+                        options: ["on", "off"];
+                        value: root.set-updates;
+                        pick(v) => {
+                            root.setting-changed("updates", v);
+                        }
+                    }
+                    if root.update-status != "": Text {
+                        text: root.update-status;
+                        color: root.update != "" ? T.bone : T.mut;
+                        font-size: 14px;
+                        wrap: word-wrap;
+                    }
+                    if root.update != "": HorizontalLayout {
+                        alignment: start;
+                        VButton {
+                            label: "UPDATE TO " + root.update;
+                            clicked => {
+                                root.update-now();
+                            }
+                        }
+                    }
+                }
+                Block {
+                    title: "STATUS";
+                    Text {
+                        text: root.stats-status;
+                        color: T.bone;
+                        font-size: 16px;
+                        wrap: word-wrap;
+                    }
+                    Text {
+                        text: "Saved on this PC:  " + root.store-status;
+                        color: T.mut;
+                        font-size: 14px;
+                        wrap: word-wrap;
+                    }
+                    if root.detail != "": Text {
+                        text: "Game client:  " + root.detail;
+                        color: T.mut;
+                        font-size: 14px;
+                        wrap: word-wrap;
+                    }
+                }
+                Block {
+                    title: "ABOUT";
+                    Text {
+                        text: "Sightline " + root.app-version + ", by Rique. Free and open source (MIT). Not made or endorsed by Riot Games.";
+                        color: T.bone;
+                        font-size: 16px;
+                        wrap: word-wrap;
+                    }
+                    Text {
+                        text: "Read-only: it reads what the Riot Client reports and never touches the game itself. Players who hide their name stay hidden while a match is live, and are never looked up; after the match they appear on its scoreboard, as in the game. Rank and match data come from the HenrikDev API; names and artwork of agents, ranks and maps from valorant-api.com, and belong to Riot Games. Built with Slint.";
+                        color: T.mut;
+                        font-size: 14px;
+                        wrap: word-wrap;
+                    }
+                }
+            }
+        }
+
+        // narrow window: the clicked player's details sit above the footer instead of beside the list
+        if root.page == 0 && !root.wide && root.sel-key != "" && root.has-lobby: Focus {
+            vertical-stretch: 0;
+            height: 330px;
+            plain: true;
+            p: root.sel-row;
+            heading: "SELECTED PLAYER";
+            draft <=> root.note-draft;
+            saved <=> root.note-saved;
+            save(text) => {
+                root.note-edited(root.sel-row.key, text);
+            }
+        }
+
+        // my record on this map, and how the teams compare
+        if root.page == 0 && root.has-lobby && root.strip != "": Rectangle {
+            vertical-stretch: 0;
+            background: T.p1;
+            Rectangle {
+                x: 0;
+                y: 0;
+                width: 3px;
+                height: parent.height;
+                background: T.red;
+            }
+            VerticalLayout {
+                padding-left: root.pad;
+                padding-right: root.pad;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                Text {
+                    text: root.strip;
+                    color: T.mut;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        // footer: what the connection is doing, in full (it wraps instead of cutting off)
+        Rectangle {
+            height: 1px;
+            background: T.line;
+        }
+        if !root.tight: HorizontalLayout {
+            padding-left: root.pad;
+            padding-right: root.pad;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            spacing: 16px;
+            Text {
+                horizontal-stretch: 1;
+                text: root.detail;
+                color: T.dim;
+                font-size: 12px;
+                vertical-alignment: center;
+                wrap: word-wrap;
+            }
+            if root.update != "": Text {
+                text: "Update " + root.update + " available in Settings";
+                color: T.blue;
+                font-size: 12px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.stats-status;
+                color: root.key-found ? T.dim : T.warn;
+                font-size: 12px;
+                vertical-alignment: center;
+            }
+        }
+        if root.tight: VerticalLayout {
+            padding-left: root.pad;
+            padding-right: root.pad;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            spacing: 2px;
+            Text {
+                text: root.detail;
+                color: T.dim;
+                font-size: 12px;
+                wrap: word-wrap;
+            }
+            Text {
+                text: root.stats-status;
+                color: root.key-found ? T.dim : T.warn;
+                font-size: 12px;
+            }
+        }
+    }
+}

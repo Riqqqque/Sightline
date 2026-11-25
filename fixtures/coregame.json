@@ -1,0 +1,27 @@
+{
+  "MatchID": "00000000-0000-4000-8000-0000000000a1",
+  "MapID": "/Game/Maps/Ascent/Ascent",
+  "MatchmakingData": { "QueueID": "competitive" },
+  "Players": [
+    { "Subject": "00000000-0000-4000-8000-000000000001", "TeamID": "Blue", "CharacterID": "8e253930-4c05-31dd-1b6c-968525494517",
+      "PlayerIdentity": { "AccountLevel": 212, "Incognito": true, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-000000000002", "TeamID": "Blue", "CharacterID": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+      "PlayerIdentity": { "AccountLevel": 88, "Incognito": true, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-000000000003", "TeamID": "Blue", "CharacterID": "320b2a48-4d9b-a075-30f1-1f93a9b638fa",
+      "PlayerIdentity": { "AccountLevel": 301, "Incognito": true, "HideAccountLevel": true } },
+    { "Subject": "00000000-0000-4000-8000-000000000004", "TeamID": "Blue", "CharacterID": "f94c3b30-42be-e959-889c-5aa313dba261",
+      "PlayerIdentity": { "AccountLevel": 24, "Incognito": false, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-000000000005", "TeamID": "Blue", "CharacterID": "569fdd95-4d10-43ab-ca70-79becc718b46",
+      "PlayerIdentity": { "AccountLevel": 31, "Incognito": false, "HideAccountLevel": true } },
+    { "Subject": "00000000-0000-4000-8000-000000000006", "TeamID": "Red", "CharacterID": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+      "PlayerIdentity": { "AccountLevel": 140, "Incognito": false, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-000000000007", "TeamID": "Red", "CharacterID": "8e253930-4c05-31dd-1b6c-968525494517",
+      "PlayerIdentity": { "AccountLevel": 67, "Incognito": false, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-000000000008", "TeamID": "Red", "CharacterID": "320b2a48-4d9b-a075-30f1-1f93a9b638fa",
+      "PlayerIdentity": { "AccountLevel": 455, "Incognito": true, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-000000000009", "TeamID": "Red", "CharacterID": "f94c3b30-42be-e959-889c-5aa313dba261",
+      "PlayerIdentity": { "AccountLevel": 19, "Incognito": false, "HideAccountLevel": false } },
+    { "Subject": "00000000-0000-4000-8000-00000000000a", "TeamID": "Red", "CharacterID": "569fdd95-4d10-43ab-ca70-79becc718b46",
+      "PlayerIdentity": { "AccountLevel": 203, "Incognito": false, "HideAccountLevel": false } }
+  ]
+}

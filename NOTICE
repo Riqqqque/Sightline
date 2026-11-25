@@ -1,0 +1,53 @@
+Sightline
+Author: Rique
+Source code: MIT licence (see LICENSE). https://github.com/Riqqqque/Sightline
+
+Sightline is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games
+or anyone officially involved in producing or managing Riot Games properties. VALORANT and Riot
+Games are trademarks or registered trademarks of Riot Games, Inc.
+
+--------------------------------------------------------------------------------
+VALORANT-rank-yoinker
+https://github.com/zayKenyon/VALORANT-rank-yoinker (studied via the mdevio fork)
+
+Used as a reference for which endpoints exist and what they return. No source code is copied.
+
+The ISC License
+
+Copyright (c) 2021 - 2023 Zay Kenyon and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+--------------------------------------------------------------------------------
+Slint
+https://slint.dev
+
+Used under the Slint Royalty-free Desktop, Mobile, and Web Applications License, version 2.0.
+Attribution is shown as a line in the About section of the Settings screen.
+
+--------------------------------------------------------------------------------
+HenrikDev unofficial VALORANT API
+https://github.com/Henrik-3/unofficial-valorant-api
+
+Player statistics are requested from this API. Credit as requested by the project.
+
+--------------------------------------------------------------------------------
+VALORANT artwork
+https://valorant-api.com (media.valorant-api.com)
+
+Agent portraits and icons, rank badges and map images are the property of Riot Games, Inc. They
+are not part of this repository and are not covered by its licence. `tools\make-art.ps1` fetches
+them from valorant-api.com, and a released Sightline.exe contains display-size copies so the
+window can show them. Sightline is free and non-commercial; this use follows Riot's policy for
+fan projects ("Legal Jibber Jabber"), under which Riot can ask for it to stop at any time. The
+pictures in docs/readme show the app with made-up players.

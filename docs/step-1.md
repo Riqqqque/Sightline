@@ -120,7 +120,7 @@ Restyled 2026-11-24. Still only data the app already has; no stat columns are mo
 - When the window is too short for both teams, the list scrolls and the footer stays put.
 - Checked by screenshot: in match and agent select at 1280, 720 and 420 logical px; closed and
   post game at 1280; queue at 720; menu at 420. Also the longest possible names (16 wide letters
-  plus a 5-letter tag) at 420 px, where the name is cut with "â€¦" and the tag, the "YOU" mark and
+  plus a 5-letter tag) at 420 px, where the name is cut with "…" and the tag, the "YOU" mark and
   the level stay whole; a window too short for ten rows; and a refused request, whose message
   shows in full in the footer. `--fixture stress` and `--fixture refused` reproduce the last three.
 - The software renderer has no shadows, paths or rounded clipping; the design uses none.
@@ -157,7 +157,7 @@ No ranked game is needed. A custom game on your own covers everything except the
 
 The footer (bottom left) says how far the connection got, so if a step fails, its text tells
 which link broke: "no Riot Client", "Riot Client found, connecting", "event socket refused",
-"event socket connected, not signed in yet", "event socket connected Â· N events Â· presence â€¦".
+"event socket connected, not signed in yet", "event socket connected · N events · presence …".
 "Stats key missing" in the bottom right is expected in step 1 if the app was started from a
 terminal opened before the variable was set; the key is not used until step 2.
 
@@ -181,7 +181,7 @@ terminal opened before the variable was set; the key is not used until step 2.
 8. Close VALORANT.
    Expect: "Waiting for VALORANT" within about 10 seconds.
 
-If any step shows "Players unavailable: â€¦" or "Names unavailable: â€¦" in the footer, that text
+If any step shows "Players unavailable: …" or "Names unavailable: …" in the footer, that text
 says which request failed. In a narrow window the key status sits under the footer text instead
 of to its right.
 The one real match still worth watching later: whether enemies appear during agent select or only

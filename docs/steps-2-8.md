@@ -12,8 +12,8 @@ seen live yet. The checklist at the end is what closes that gap.
 | 2 Data layer | Stats client for HenrikDev (rank, recent matches, my finished match). Local SQLite database. A worker that queues lookups inside the rate limit. The key is read from the user variable, also when the process environment does not carry it. | `src/source/henrik.rs`, `src/store.rs`, `src/stats.rs`, `src/win.rs` |
 | 3 Cards | Each row shows rank, RR, peak, the last five results, KD, HS% and ADR over the last ten ranked matches. Placeholders of the same size while loading. Click a row for details. | `ui/app.slint`, `src/ui_bridge.rs` |
 | 4 Smurf flag and rank gap | A quiet flag for a new account with unusually strong results (`docs/smurf-score.md`). A bar comparing both teams' average rank, with an estimate. | `src/logic.rs` |
-| 5 Seen before and notes | "With 3x (2-1) Â· 4d ago" per player, and a note per player, typed in the details panel. | `src/store.rs`, `src/stats.rs` |
-| 6 Map context | "You on Ascent: 70% over 10 Â· KD Â· ADR Â· best and worst agent Â· attack and defense". The details panel shows the selected player's record on the map. | `src/stats.rs` |
+| 5 Seen before and notes | "With 3x (2-1) · 4d ago" per player, and a note per player, typed in the details panel. | `src/store.rs`, `src/stats.rs` |
+| 6 Map context | "You on Ascent: 70% over 10 · KD · ADR · best and worst agent · attack and defense". The details panel shows the selected player's record on the map. | `src/stats.rs` |
 | 7 Session and clutch | Session line (W/L, RR, streak, KD, HS%), first kills, first deaths, clutches. A recap after each match. A break reminder after losses in a row. | `src/stats.rs`, `src/source/henrik.rs` |
 | 8 Polish | Settings screen with the missing-key message, the switches below, status and about. Memory trimmed when the game closes. | `ui/app.slint`, `src/win.rs` |
 
@@ -103,7 +103,7 @@ measurement), and a real match.
 
 VALORANT was started while the measurement ran, so the two "live" rows above are the first
 contact with the real client. In the menus the app showed: status "In menus", the queue name
-(Swiftplay), footer "event socket connected Â· presence MENUS / DEFAULT (nested)", "Stats ready Â·
+(Swiftplay), footer "event socket connected · presence MENUS / DEFAULT (nested)", "Stats ready ·
 30/30". That confirms the lockfile, the event socket, the presence layout (nested) and state
 detection in the menus. No lobby was open, so no request went to Riot's servers.
 

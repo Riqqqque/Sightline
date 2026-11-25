@@ -3,7 +3,8 @@
 //
 // Usage: sightline [--fixture [tour|closed|menu|queue|lobby|match|post|dm|dm12|stress|refused|nokey]]
 //                 [--db PATH] [--exit-after SECONDS] [--pos X,Y] [--size WxH]
-//   --fixture     run on made-up data without the game or the network
+//   --fixture     run on made-up data without the game or the network; put `show:` in front of
+//                 a mode (`show:match`) for the cast used in the README pictures
 //   --db          use this database file instead of the default one
 //   --exit-after  quit after this many seconds (for measurements)
 //   --pos, --size place the window, in physical pixels (for measurements)
@@ -133,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Made-up data never reaches the real database: memory only, unless a file is named.
                 let Some(store) = Store::open(db_path.as_deref()) else { return };
                 source::fixture::seed(&store);
-                let stats = (mode != "nokey").then(FixtureStats::new);
+                let stats = (mode != "nokey").then(|| FixtureStats::for_mode(&mode));
                 runtime.block_on(together(
                     engine::run_with(Fixture::new(&mode), Some(link), push),
                     stats::run(stats, &store, command_rx, emit),

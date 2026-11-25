@@ -39,8 +39,50 @@ const PARTIES: [(&str, &str); 4] = [
     ("00000000-0000-4000-8000-000000000007", "party-b"),
 ];
 
+/// The cast for pictures: the same twelve made-up players under names that read like real ones,
+/// each on a different agent. Chosen with a `show:` prefix on the mode, as in `show:match`.
+/// Name, tag, agent id, agent.
+const SHOW: [(&str, &str, &str, &str); 12] = [
+    ("Rique", "EUW", "8e253930-4c05-31dd-1b6c-968525494517", "Omen"),
+    ("nightowl", "0001", "add6443a-41bd-e414-f6ad-e58d267f4e95", "Jett"),
+    ("must stay hidden", "leak", "320b2a48-4d9b-a075-30f1-1f93a9b638fa", "Sova"),
+    ("Marlowe", "mrl", "1e58de9c-4950-5125-93e9-a0aee9f98746", "Killjoy"),
+    ("tidepool", "wave", "569fdd95-4d10-43ab-ca70-79becc718b46", "Sage"),
+    ("glasswing", "gls", "a3bfb853-43b2-7238-a4f1-ad90e9e46bcc", "Reyna"),
+    ("Kestrel", "kes", "117ed9e3-49f3-6512-3ccf-0cada7e3823b", "Cypher"),
+    ("must stay hidden too", "leak", "5f8d3a7f-467b-97f3-062c-13acf203c006", "Breach"),
+    ("paper tiger", "roar", "f94c3b30-42be-e959-889c-5aa313dba261", "Raze"),
+    ("duskfall", "dusk", "1dbf2edd-4729-0984-3115-daa5eed44993", "Clove"),
+    ("mossback", "4040", "dade69b4-4f5a-8528-247b-219e5a1facd6", "Fade"),
+    ("tenfold", "x10", "bb2a4828-46eb-8cd1-e765-15848195d751", "Neon"),
+];
+
+/// Splits `show:match` into (true, "match"); any other mode is (false, mode).
+fn showcase(mode: &str) -> (bool, &str) {
+    match mode.strip_prefix("show:") {
+        Some(inner) => (true, inner),
+        None => (false, mode),
+    }
+}
+
+/// Puts the showcase cast's agents on the players of a roster answer. A player who has not
+/// picked yet stays that way.
+fn recast(players: &mut [wire::RawPlayer]) {
+    for p in players {
+        // All twelve: the two extra deathmatch players are in the cast as well.
+        let cast = Uuid::parse(&p.subject)
+            .and_then(|id| (1..=12u8).find(|n| player(*n) == id))
+            .map(|n| SHOW[usize::from(n - 1)]);
+        if let (Some((_, _, agent, _)), false) = (cast, p.character_id.as_deref().unwrap_or("").is_empty()) {
+            p.character_id = Some(agent.to_string());
+        }
+    }
+}
+
 pub struct Fixture {
     mode: String,
+    /// The showcase cast is on.
+    show: bool,
     pregame_calls: u32,
     /// Every id a name was asked for, so tests can prove hidden players were never asked about.
     pub asked: Vec<PlayerId>,
@@ -52,7 +94,8 @@ impl Fixture {
     /// a match where every name is as wide as a name can be, and `refused` is a lobby whose
     /// second read is refused, which puts the error text in the footer.
     pub fn new(mode: &str) -> Self {
-        Self { mode: mode.to_string(), pregame_calls: 0, asked: Vec::new() }
+        let (show, mode) = showcase(mode);
+        Self { mode: mode.to_string(), show, pregame_calls: 0, asked: Vec::new() }
     }
 
     fn me() -> Uuid {
@@ -63,7 +106,12 @@ impl Fixture {
         PARTIES.iter().filter_map(|(id, p)| Some((Uuid::parse(id)?, p.to_string()))).collect()
     }
 
+    #[cfg(test)]
     pub fn pregame(all_locked: bool) -> Roster {
+        Self::pregame_cast(all_locked, false)
+    }
+
+    fn pregame_cast(all_locked: bool, show: bool) -> Roster {
         let mut m: wire::PregameMatch = serde_json::from_str(PREGAME).expect("pregame fixture");
         if all_locked {
             if let Some(team) = m.ally_team.as_mut() {
@@ -75,16 +123,27 @@ impl Fixture {
                 }
             }
         }
+        if let (true, Some(team)) = (show, m.ally_team.as_mut()) {
+            recast(&mut team.players);
+        }
         wire::pregame_roster(m, Self::me(), &Self::parties()).expect("pregame roster")
     }
 
+    #[cfg(test)]
     pub fn coregame() -> Roster {
-        let m: wire::CoreMatch = serde_json::from_str(COREGAME).expect("coregame fixture");
+        Self::coregame_cast(false)
+    }
+
+    fn coregame_cast(show: bool) -> Roster {
+        let mut m: wire::CoreMatch = serde_json::from_str(COREGAME).expect("coregame fixture");
+        if show {
+            recast(&mut m.players);
+        }
         wire::core_roster(m, Self::me(), &Self::parties()).expect("core roster")
     }
 
     /// The same ten players as a deathmatch: the game gives everyone the same team id there.
-    pub fn deathmatch(twelve: bool) -> Roster {
+    fn deathmatch_cast(twelve: bool, show: bool) -> Roster {
         let mut m: wire::CoreMatch = serde_json::from_str(COREGAME).expect("coregame fixture");
         if twelve {
             // Two more visible players, as a real deathmatch has. There are no stats for them,
@@ -100,6 +159,9 @@ impl Fixture {
         for p in &mut m.players {
             p.team_id = Some("Blue".into());
         }
+        if show {
+            recast(&mut m.players);
+        }
         m.matchmaking = Some(wire::Matchmaking { queue_id: Some("deathmatch".into()) });
         wire::core_roster(m, Self::me(), &Self::parties()).expect("core roster")
     }
@@ -112,6 +174,14 @@ impl Fixture {
             ("320b2a48-4d9b-a075-30f1-1f93a9b638fa", "Sova", Role::Initiator),
             ("f94c3b30-42be-e959-889c-5aa313dba261", "Raze", Role::Duelist),
             ("569fdd95-4d10-43ab-ca70-79becc718b46", "Sage", Role::Sentinel),
+            // Used by the showcase cast and the twelve-player deathmatch.
+            ("1e58de9c-4950-5125-93e9-a0aee9f98746", "Killjoy", Role::Sentinel),
+            ("a3bfb853-43b2-7238-a4f1-ad90e9e46bcc", "Reyna", Role::Duelist),
+            ("117ed9e3-49f3-6512-3ccf-0cada7e3823b", "Cypher", Role::Sentinel),
+            ("5f8d3a7f-467b-97f3-062c-13acf203c006", "Breach", Role::Initiator),
+            ("1dbf2edd-4729-0984-3115-daa5eed44993", "Clove", Role::Controller),
+            ("dade69b4-4f5a-8528-247b-219e5a1facd6", "Fade", Role::Initiator),
+            ("bb2a4828-46eb-8cd1-e765-15848195d751", "Neon", Role::Duelist),
         ] {
             c.add_agent(id, name, role);
         }
@@ -176,11 +246,11 @@ impl DataSource for Fixture {
                     return Err(SourceError::Http(403));
                 }
                 // The first looks show a lobby still picking; later ones show everyone locked in.
-                Ok(Self::pregame(self.pregame_calls > 2))
+                Ok(Self::pregame_cast(self.pregame_calls > 2, self.show))
             }
-            Phase::InGame if self.mode == "dm12" => Ok(Self::deathmatch(true)),
-            Phase::InGame if self.mode == "deathmatch" || self.mode == "dm" => Ok(Self::deathmatch(false)),
-            Phase::InGame => Ok(Self::coregame()),
+            Phase::InGame if self.mode == "dm12" => Ok(Self::deathmatch_cast(true, self.show)),
+            Phase::InGame if self.mode == "deathmatch" || self.mode == "dm" => Ok(Self::deathmatch_cast(false, self.show)),
+            Phase::InGame => Ok(Self::coregame_cast(self.show)),
             _ => Err(SourceError::NotReady),
         }
     }
@@ -192,13 +262,21 @@ impl DataSource for Fixture {
             ("00000000-0000-4000-8000-00000000000b", "mossback", "4040"),
             ("00000000-0000-4000-8000-00000000000c", "tenfold", "x10"),
         ];
+        let show = self.show;
         Ok(NAMES
             .iter()
             .chain(EXTRA.iter())
-            .filter_map(|(id, name, tag)| {
+            .enumerate()
+            .filter_map(|(index, (id, name, tag))| {
                 let id = Uuid::parse(id)?;
                 // The longest a name and tag can be, in the widest letters.
-                let (name, tag) = if stress { ("WWWWWWWWMMMMMMMM", "WWWWW") } else { (*name, *tag) };
+                let (name, tag) = if stress {
+                    ("WWWWWWWWMMMMMMMM", "WWWWW")
+                } else if show {
+                    (SHOW[index].0, SHOW[index].1)
+                } else {
+                    (*name, *tag)
+                };
                 players.contains(&id).then(|| Name { id, name: name.to_string(), tag: tag.to_string() })
             })
             .collect())
@@ -213,6 +291,19 @@ impl DataSource for Fixture {
     }
 
     fn diagnostics(&self) -> String {
+        if self.show {
+            // As the live line reads in each state, for pictures.
+            let state = match self.mode.as_str() {
+                "menu" | "closed" | "tour" => "presence MENUS / DEFAULT (nested)",
+                "queue" => "presence MENUS / MATCHMAKING (nested)",
+                "lobby" => "presence PREGAME / DEFAULT (nested) · pre-game 5 players, 1 hidden",
+                "dm12" => "presence INGAME / DEFAULT (nested) · core-game 12 players, 2 hidden",
+                "deathmatch" | "dm" => "presence INGAME / DEFAULT (nested) · core-game 10 players, 2 hidden",
+                "post" => "presence MENUS / DEFAULT (nested) · core-game 5 + 5 players, 2 hidden",
+                _ => "presence INGAME / DEFAULT (nested) · core-game 5 + 5 players, 2 hidden",
+            };
+            return format!("event socket connected · 14 events · {state}");
+        }
         // About as long as the live line gets, so the footer is checked with real lengths.
         "fixture data · event socket connected · 14 events · presence INGAME / DEFAULT (nested) · \
          core-game 5 + 5 players, 2 hidden"
@@ -263,14 +354,22 @@ const FORM: [(u8, i32, u8, u32, u32, u32, u32, u32, u32); 10] = [
 /// prove a hidden player was never looked up.
 pub struct FixtureStats {
     pub asked: Rc<RefCell<Vec<PlayerId>>>,
+    /// The showcase cast is on.
+    show: bool,
 }
 
 impl FixtureStats {
+    #[cfg(test)]
     pub fn new() -> Self {
-        Self { asked: Rc::default() }
+        Self { asked: Rc::default(), show: false }
     }
 
-    fn games(n: u8) -> Vec<Game> {
+    /// For a fixture mode, which may carry the `show:` prefix.
+    pub fn for_mode(mode: &str) -> Self {
+        Self { asked: Rc::default(), show: showcase(mode).0 }
+    }
+
+    fn games(n: u8, show: bool) -> Vec<Game> {
         let (tier, _, _, _, kills, deaths, head, adr, wins) = FORM[usize::from(n - 1)];
         let now = clock();
         (0..10u32)
@@ -282,7 +381,12 @@ impl FixtureStats {
                     match_id: Uuid::parse(&format!("000000{n:02x}-0000-4000-8000-0000000001{i:02x}")).expect("fixture id"),
                     started_at: now - i64::from(i + 1) * 40_000,
                     map: ["Ascent", "Bind", "Haven", "Ascent", "Lotus"][((i + u32::from(n)) % 5) as usize].to_string(),
-                    agent: AGENTS[((u32::from(n) + i / 4) % 5) as usize].1.to_string(),
+                    agent: if show {
+                        // Mostly their own agent, with two others mixed in.
+                        SHOW[((u32::from(n) - 1 + (i / 4) * 3) % 12) as usize].3.to_string()
+                    } else {
+                        AGENTS[((u32::from(n) + i / 4) % 5) as usize].1.to_string()
+                    },
                     // Spread the wins through the ten matches instead of bunching them.
                     won: u8::from((i * 7 + u32::from(n)) % 10 < wins),
                     rounds,
@@ -303,19 +407,24 @@ impl FixtureStats {
     /// The fixture match as the stats API would describe it once it is over, in that API's own
     /// JSON shape, so it goes through the real reading code. All ten players are in it by name,
     /// including the two who were hidden live.
-    fn finished_match_json() -> String {
+    fn finished_match_json(show: bool) -> String {
         let players: Vec<String> = (1..=10u8)
             .map(|n| {
                 let (tier, _, _, _, kills, deaths, head, adr, _) = FORM[usize::from(n - 1)];
-                let (agent_id, agent) = AGENTS[usize::from((n - 1) % 5)];
-                let (name, tag) = (NAMES[usize::from(n - 1)].1, NAMES[usize::from(n - 1)].2);
+                let cast = SHOW[usize::from(n - 1)];
+                let (agent_id, agent) = if show { (cast.2, cast.3) } else { AGENTS[usize::from((n - 1) % 5)] };
+                let (name, tag) = if show { (cast.0, cast.1) } else { (NAMES[usize::from(n - 1)].1, NAMES[usize::from(n - 1)].2) };
                 format!(
                     r#"{{"puuid":"{}","name":"{name}","tag":"{tag}","team_id":"{}","party_id":"p{n}",
                         "agent":{{"id":"{agent_id}","name":"{agent}"}},"tier":{{"id":{tier},"name":""}},
-                        "stats":{{"score":5000,"kills":{kills},"deaths":{deaths},"assists":5,"headshots":{head},
+                        "stats":{{"score":{},"kills":{kills},"deaths":{deaths},"assists":{},"headshots":{head},
                                   "bodyshots":{},"legshots":8,"damage":{{"dealt":{},"received":2900}}}}}}"#,
                     player(n),
                     if n <= 5 { "Blue" } else { "Red" },
+                    // Combat score follows kills and damage, so the scoreboard has an order.
+                    kills * 150 + adr * 13,
+                    // Mine stays at 5; the others spread from 5 to 11.
+                    5 + (n - 1) * 5 % 7,
                     92 - head,
                     adr * 22,
                 )
@@ -391,13 +500,13 @@ impl StatsSource for FixtureStats {
     async fn history(&mut self, id: PlayerId) -> Result<Vec<Game>, SourceError> {
         tokio::time::sleep(Duration::from_millis(120)).await;
         self.asked.borrow_mut().push(id);
-        Ok(Self::games(number(id).ok_or(SourceError::Http(404))?))
+        Ok(Self::games(number(id).ok_or(SourceError::Http(404))?, self.show))
     }
 
     async fn last_match(&mut self, me: PlayerId, hidden: &[(Side, Uuid)]) -> Result<Option<FullMatch>, SourceError> {
         tokio::time::sleep(Duration::from_millis(120)).await;
         let now = clock();
-        let mut m = super::henrik::parse_full_match(&Self::finished_match_json(), me, hidden);
+        let mut m = super::henrik::parse_full_match(&Self::finished_match_json(self.show), me, hidden);
         if let Some(m) = m.as_mut() {
             m.started_at = now;
             m.mine.started_at = now;
@@ -510,6 +619,27 @@ mod tests {
         assert_eq!(r.slots[4].level, None);
         assert_eq!(r.hidden, 1);
         assert!(Fixture::pregame(true).slots.iter().all(|s| s.locked && s.agent.is_some()));
+    }
+
+    #[test]
+    fn the_showcase_cast_changes_names_and_agents_but_not_who_is_hidden() {
+        assert_eq!(showcase("show:match"), (true, "match"));
+        assert_eq!(showcase("match"), (false, "match"));
+        let plain = Fixture::coregame();
+        let shown = Fixture::coregame_cast(true);
+        assert_eq!(shown.slots.len(), plain.slots.len());
+        assert_eq!(shown.hidden, plain.hidden, "the same two players are hidden");
+        for (a, b) in shown.slots.iter().zip(plain.slots.iter()) {
+            assert_eq!((a.id, a.side, a.is_me), (b.id, b.side, b.is_me));
+        }
+        // Ten players, each on a different agent, all of them known to the fixture's catalog.
+        let catalog = Fixture::catalog_data();
+        let mut agents: Vec<&str> = shown.slots.iter().filter_map(|s| catalog.agent(&s.agent?)).collect();
+        agents.sort_unstable();
+        agents.dedup();
+        assert_eq!(agents.len(), 10);
+        // In agent select a player who has not picked still has not picked.
+        assert!(Fixture::pregame_cast(false, true).slots[3].agent.is_none());
     }
 
     #[test]

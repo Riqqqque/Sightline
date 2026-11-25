@@ -8,7 +8,9 @@ A live-match companion for VALORANT that sits on your second monitor. It shows w
 lobby and match (rank, recent form, whether you have met before) and, once the match is over,
 its full scoreboard. It is a separate window, it is read-only, and it stays small.
 
-![A ranked match in Sightline](docs/readme/match.png)
+![A ranked match in Sightline: both teams with rank, recent form and who you have met before](docs/readme/match.png)
+
+<sub>Every picture on this page is the real window, drawn from made-up players.</sub>
 
 > **Read this first.** Sightline is a fan project. It is not made, approved or endorsed by Riot
 > Games. Riot's developer policy lists tools that show opponents' stats before a match as an
@@ -21,7 +23,7 @@ its full scoreboard. It is a separate window, it is read-only, and it stays smal
   the match loads, because that is when the game itself reveals it.
 - **Recent form.** The last five ranked results as `W` and `L`, plus KD, headshot rate and ADR
   over the last ten ranked matches.
-- **Seen before.** "With 3x (2-1) Â· 4d ago": players you have already played with or against,
+- **Seen before.** "With 3x (2-1) · 4d ago": players you have already played with or against,
   and how those matches went. You can keep a note on any player.
 - **Smurf flag.** A quiet hint for a new account with unusually strong results. It needs both,
   so a good veteran is never flagged. Click the player to see why.
@@ -35,9 +37,22 @@ its full scoreboard. It is a separate window, it is read-only, and it stays smal
   hid their name stay "Hidden" there unless you choose otherwise in Settings.
 - **Every mode.** Deathmatch is one list; team modes are two.
 
-| Deathmatch | After the match |
+## A look around
+
+| Agent select | After the match |
 | --- | --- |
-| ![Deathmatch](docs/readme/deathmatch.png) | ![Post-game scoreboard](docs/readme/post-game.png) |
+| [![Agent select: your own team, the other team appears when the match loads](docs/readme/agent-select.png)](docs/readme/agent-select.png) | [![Post-game scoreboard with all ten players](docs/readme/post-game.png)](docs/readme/post-game.png) |
+| Your team as it picks. The other team shows up when the match loads. | All ten players, your own match in numbers, and the RR change. |
+
+| Deathmatch | Between matches |
+| --- | --- |
+| [![Deathmatch: one list of twelve players](docs/readme/deathmatch.png)](docs/readme/deathmatch.png) | [![The menus: your session and your record on every map](docs/readme/session.png)](docs/readme/session.png) |
+| One list, readable players first, hidden ones last. | Your session so far and your record on every map. |
+
+| Settings | A narrow window |
+| --- | --- |
+| <a href="docs/readme/settings.png"><img src="docs/readme/settings.png" alt="The settings screen" width="460"></a> | <a href="docs/readme/narrow.png"><img src="docs/readme/narrow.png" alt="Sightline as a narrow strip beside the game" width="250"></a> |
+| Every feature has a switch. | Shrink it to a strip and it keeps the essentials. |
 
 ## What it does not do
 
@@ -147,7 +162,8 @@ Useful while working on it:
 - `target\release\sightline.exe --fixture match` runs the whole app on made-up players, with no
   game and no network. Other fixtures: `lobby`, `dm`, `dm12`, `post`, `menu`, `tour`, `nokey`.
 - `tools\render.ps1 -State match -Out shot.png` draws the window into a picture without opening
-  one.
+  one. The pictures on this page are made that way, with `show:` in front of the state
+  (`-State 'show:match'`) for a fuller cast of made-up players.
 - `tools\quiet-cargo.ps1 -CargoArgs 'test'` builds at low priority, for when a game is running.
 
 How it is put together: [docs/architecture.md](docs/architecture.md). Why things are the way

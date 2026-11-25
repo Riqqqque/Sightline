@@ -34,17 +34,18 @@ impl Platform for Offscreen {
     }
 }
 
-/// The last view the made-up game produces within `seconds`.
-fn last_view(mode: &str, seconds: u64) -> Option<View> {
+/// The last view the made-up game produces within `seconds`. `db` is a scratch database file;
+/// without one the database lives in memory and its size reads as nothing.
+fn last_view(mode: &str, seconds: u64, db: Option<&Path>) -> Option<View> {
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().ok()?;
-    let store = Store::open(None)?;
+    let store = Store::open(db)?;
     fixture::seed(&store);
     let last: Rc<RefCell<Option<View>>> = Rc::default();
     let sink = last.clone();
     let (command_tx, command_rx) = mpsc::unbounded_channel();
     let (insight_tx, insight_rx) = mpsc::unbounded_channel();
     let link = StatsLink { commands: command_tx, insights: insight_rx };
-    let stats = (mode != "nokey").then(FixtureStats::new);
+    let stats = (mode != "nokey").then(|| FixtureStats::for_mode(mode));
     runtime.block_on(async {
         let app = together(
             engine::run_with(Fixture::new(mode), Some(link), move |view| *sink.borrow_mut() = Some(view)),
@@ -89,7 +90,8 @@ pub fn to_file(args: &[String], mode: &str, out: &Path) -> Result<(), Box<dyn st
     let scale: f32 = value(args, "--scale").and_then(|v| v.parse().ok()).unwrap_or(1.5);
     let seconds: u64 = value(args, "--exit-after").and_then(|v| v.parse().ok()).unwrap_or(5);
 
-    let view = last_view(mode, seconds).ok_or("the made-up game produced nothing")?;
+    let db = value(args, "--db").map(std::path::PathBuf::from);
+    let view = last_view(mode, seconds, db.as_deref()).ok_or("the made-up game produced nothing")?;
 
     let window = MinimalSoftwareWindow::new(RepaintBufferType::NewBuffer);
     slint::platform::set_platform(Box::new(Offscreen { window: window.clone(), started: Instant::now() }))?;
